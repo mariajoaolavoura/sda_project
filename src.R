@@ -1,5 +1,100 @@
-data2 = read.csv("./../data/cleaned-cars.csv")
-View(data2)
+## Masters of Data Science
+## Project of Statistics and Data Analysis, 2019/2020
+## Nuno Gomes + Maria João Lavoura
+## Prediction of coronary disease from nine predictors
+## (eight numerical and one categorical) recorded in 462 medical exams.
+
+# libraries
+require(plotrix)
+require(fastDummies)
+
+# paths
+path= paste0("/home/ngomes/",
+             "Documents/mds/",
+             "22-m4114--statistics-data-analysis/project/",
+             "coronary/")
+if (getwd() != path) setwd(path)
+
+coron.dat= read.csv("coronary-disease.csv", sep= ';')
+head(coron.dat)
+tail(coron.dat)
+
+# drop 'id' column
+coron.dat= subset(coron.dat, select= -c(ind))
+summary(coron.dat)
+
+# convert family history to 1/0
+coron.dat$famhist= factor(coron.dat$famhist, labels= c(0, 1))
+
+# extract variables/features
+adip=    coron.dat$adiposity # adiposity
+age=     coron.dat$age       # age at time of heart attack
+alcohol= coron.dat$alcohol   # current consumption of alcohol
+bp=      coron.dat$sbp       # blood pressure
+corond=  coron.dat$chd       # coronary disease
+famhist= coron.dat$famhist   # family history
+ldl=     coron.dat$ldl       # low density lipoprotein cholesterol
+obes=    coron.dat$obesity   # obesity
+tobacco= coron.dat$tobacco   # cumulative tobacco (kg)
+typea=   coron.dat$typea     # behaviour type A
+
+cor(coron.dat)
+
+# adiposity
+summary(adip)
+hist(adip,
+     breaks= seq(round(min(adip))-5, round(max(adip))+5, by= 5))
+boxplot(age, yaxt= 'n',
+        main= "Boxplot of adiposity")
+axis(2, las= 2)
+
+# age
+summary(age)
+hist(age,
+     breaks= seq(round(min(age))-5, round(max(age))+5, by= 5))
+boxplot(age, yaxt= 'n',
+        main= "Boxplot of age")
+axis(2, las= 2)
+
+# alcohol
+# non-drinkers
+alc0.chd= coron.dat[which(coron.dat$alcohol == 0), ]$chd
+alc0.chd.0= length(alc0.chd[which(alc0.chd == 0)])
+alc0.chd.1= length(alc0.chd[which(alc0.chd == 1)])
+alc0.tot= alc0.chd.0 + alc0.chd.1
+alc0.0.pct= round(alc0.chd.0/alc0.tot*100)
+alc0.1.pct= round(alc0.chd.1/alc0.tot*100)
+# drinkers
+alc1.chd= coron.dat[which(coron.dat$alcohol != 0), ]$chd
+alc1.chd.0= length(alc1.chd[which(alc1.chd == 0)])
+alc1.chd.1= length(alc1.chd[which(alc1.chd == 1)])
+alc1.tot= alc1.chd.0 + alc1.chd.1
+alc1.0.pct= round(alc1.chd.0/alc1.tot*100)
+alc1.1.pct= round(alc1.chd.1/alc1.tot*100)
+# pie-charts alcohol intake
+alc0.labs= c(
+  paste('No CND:', alc0.0.pct),
+  paste('CND:', alc0.1.pct))
+alc0.labs= paste0(alc0.labs, '%')
+alc0.cols= c('#85C1E9', '#F8C471')
+alc1.labs= c(
+  paste('No CND:', alc1.0.pct),
+  paste('CND:', alc1.1.pct))
+alc1.labs= paste0(alc1.labs, '%')
+alc1.cols= c('#D7BDE2', '#F8C471')
+par(mfrow= c(1, 2))
+pie3D(c(alc0.chd.0, alc0.chd.1), theta= pi/3,
+      labels= alc0.labs, labelcex= 0.8,
+      col= alc0.cols,
+      start= pi/6, explode= 0.1)
+mtext("Non-drinkers", side= 1, cex= 1)
+pie3D(c(alc1.chd.0, alc1.chd.1), theta= pi/3,
+      labels= alc1.labs, labelcex= 0.8,
+      col= alc1.cols,
+      start= pi/6, explode= 0.1)
+mtext("Drinkers", side= 1, cex= 1)
+mtext("Coronal disease ~ Alcohol Intake",
+      side= 3, line= -4, outer= T, cex= 2)
 
 # TODO:
 #   *minimamente simetricos (hist, boxplot)
@@ -9,9 +104,8 @@ View(data2)
 #   *missing values
 #   *analise modelo
 #   *multicolinearidade (vif(model))
-#   *homocedasticidade (plot fitted values vs stard residuals)
+#   *homocedasticidade (plot fitted values vs stadard residuals)
 #   *pontos influentes (cook dist, leverages(hatvalues) )
 
 
-pairs(data2[15000, 2:10])
 

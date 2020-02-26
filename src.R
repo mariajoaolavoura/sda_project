@@ -4,34 +4,92 @@
 ## Prediction of coronary disease from nine predictors
 ## (eight numerical and one categorical) recorded in 462 medical exams.
 
+# source for ideas: https://rpubs.com/lance4869/SAheart
+
 # libraries
 require(plotrix)
 require(fastDummies)
 
-coron.dat= read.csv("./data/coronary-disease.csv", sep= ';')
-head(coron.dat)
-tail(coron.dat)
+coron.dat0= read.csv("./data/coronary-disease.csv", sep= ';')
+head(coron.dat0)
+tail(coron.dat0)
 
 # drop 'id' column
-coron.dat= subset(coron.dat, select= -c(ind))
+coron.dat= subset(coron.dat0, select= -c(ind))
 summary(coron.dat)
 
 # convert family history to 1/0
-coron.dat$famhist= factor(coron.dat$famhist, labels= c(0, 1))
+coron.dat$famhist= as.integer(coron.dat$famhist) - 1
 
 # extract variables/features
-adip=    coron.dat$adiposity # adiposity
+adip=    coron.dat$adiposity # adiposity (body adiposity index, BAI, in %)
+# https://www.intmath.com/functions-and-graphs/bmi-bai-comparison.php
 age=     coron.dat$age       # age at time of heart attack
 alcohol= coron.dat$alcohol   # current consumption of alcohol
 bp=      coron.dat$sbp       # blood pressure
 corond=  coron.dat$chd       # coronary disease
 famhist= coron.dat$famhist   # family history
-ldl=     coron.dat$ldl       # low density lipoprotein cholesterol
-obes=    coron.dat$obesity   # obesity
+ldl=     coron.dat$ldl       # low density lipoprotein cholesterol (mg/dl)
+obes=    coron.dat$obesity   # obesity = BMI (kg/m^2)
 tobacco= coron.dat$tobacco   # cumulative tobacco (kg)
+# https://onlinelibrary.wiley.com/doi/pdf/10.1111/bju.12400
 typea=   coron.dat$typea     # behaviour type A
+# Type A Behaviour Pattern (TABP): https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3477961/
 
-cor(coron.dat)
+# histograms and boxplots
+par(mfrow= c(1, 2))
+# adiposity
+hist(adip); boxplot(adip)
+
+# age
+hist(age); boxplot(age)
+# little people in the range 20-25 years old
+
+# alcohol
+hist(alcohol);
+balco= boxplot(alcohol)
+min(balco$out)
+
+# blood pressure
+hist(bp); boxplot(bp)
+
+# family history
+hist(famhist); boxplot(famhist)
+
+# LDL
+hist(ldl); boxplot(ldl)
+
+# obesity
+hist(obes); boxplot(obes)
+
+# tobbaco
+hist(tobacco);
+btob= boxplot(tobacco)
+min(btob$out)
+
+# type A
+hist(typea);
+boxplot(typea)
+
+cor(coron.dat[c(-5, -10)])
+# significant correlation between obesity and adiposity
+
+# pairs
+chd1= coron.dat[coron.dat$chd == 1, ]
+chd0= coron.dat[coron.dat$chd == 0, ]
+pairs(rbind(chd1, chd0), col= c("blue", "red"))
+
+# 
+
+
+plot(adip, corond)
+plot(obes, corond)
+plot(adip, obes)
+cor(adip, corond)
+cor(obes, corond)
+
+# test for multicolinearity
+
 
 # adiposity
 summary(adip)
@@ -90,11 +148,12 @@ mtext("Coronal disease ~ Alcohol Intake",
       side= 3, line= -4, outer= T, cex= 2)
 
 # TODO:
+#   *missing values
 #   *minimamente simetricos (hist, boxplot)
+#   *outliers (hist, boxplot)
 #   *linearmente relacionados com a resposta (pairs)
 #   *multicolinearidade (corr(vars))
-#   *outliers
-#   *missing values
+
 #   *analise modelo
 #   *multicolinearidade (vif(model))
 #   *homocedasticidade (plot fitted values vs stadard residuals)

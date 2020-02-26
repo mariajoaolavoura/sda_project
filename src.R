@@ -1,6 +1,6 @@
 ## Masters of Data Science
 ## Project of Statistics and Data Analysis, 2019/2020
-## Nuno Gomes + Maria João Lavoura
+## Nuno Gomes + Maria Joao Lavoura
 ## Prediction of coronary disease from nine predictors
 ## (eight numerical and one categorical) recorded in 462 medical exams.
 
@@ -8,14 +8,7 @@
 require(plotrix)
 require(fastDummies)
 
-# paths
-path= paste0("/home/ngomes/",
-             "Documents/mds/",
-             "22-m4114--statistics-data-analysis/project/",
-             "coronary/")
-if (getwd() != path) setwd(path)
-
-coron.dat= read.csv("coronary-disease.csv", sep= ';')
+coron.dat= read.csv("./data/coronary-disease.csv", sep= ';')
 head(coron.dat)
 tail(coron.dat)
 

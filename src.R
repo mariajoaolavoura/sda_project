@@ -9,6 +9,7 @@
 # libraries
 require(plotrix)
 require(fastDummies)
+require(car)
 
 coron.dat0= read.csv("./data/coronary-disease.csv", sep= ';')
 head(coron.dat0)
@@ -71,6 +72,8 @@ min(btob$out)
 hist(typea);
 boxplot(typea)
 
+
+# test for multicolinearity
 cor(coron.dat[c(-5, -10)])
 # significant correlation between obesity and adiposity
 
@@ -79,16 +82,55 @@ chd1= coron.dat[coron.dat$chd == 1, ]
 chd0= coron.dat[coron.dat$chd == 0, ]
 pairs(rbind(chd1, chd0), col= c("blue", "red"))
 
-# 
-
-
 plot(adip, corond)
 plot(obes, corond)
 plot(adip, obes)
 cor(adip, corond)
 cor(obes, corond)
+# adiposity is more correlated to coronary disease than obesity,
+# so maybe remove obesity
+
+
+mod1 = lm(chd~., data=coron.dat)
+summary(model)
+# adj R^2 is 0.2208, not at all close to 1, not good
+# sbp, adiposity, obesity and alcohol are not statisticaly significant
 
 # test for multicolinearity
+vif(mod1)
+# no value is grater than 10, so there isn't high multicoliarity, good!
+
+# test for the normality of the residuals
+par(mfrow=c(2,2))
+hist(rstandard(mod1))
+boxplot(rstandard(mod1))
+qqnorm(rstandard(mod1))
+qqline(rstandard(mod1))
+hist(rstandard(mod1), breaks = 40)
+
+par(mfrow=c(1, 2))
+qqPlot(residuals(mod1))
+qqPlot(mod1)
+
+# test for homocedasticity
+plot(fitted.values(mod1), rstandard(mod1))
+# ??
+
+# test for influent points
+plot(hatvalues(mod1), cooks.distance(mod1))
+# cooks distance inferior a 1, there are no influent points, good!
+
+
+# by the pre selection done and the summary of the model, 
+# let's just remove obesity first and analyse the model
+
+
+
+
+
+
+
+
 
 
 # adiposity

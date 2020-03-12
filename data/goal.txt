@@ -1,0 +1,3 @@
+Goal: to determine the presence or absence of cardiovascular disease in patients from five numerical and six categorical variables.
+The data set has 11 features or predictors, one target or response variable, and 70000 instances or records.
+All data set values were collected at the moment of a medical examination.

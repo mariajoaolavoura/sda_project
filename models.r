@@ -2,14 +2,14 @@
 library (glmnet) # Ridge Regression and Lasso models
 
 
-# Linear Regression
-mod.lr= lm(cardio ~ ., data= data.set)
+# Linear Regression - MJ
+mod.lr= lm(cardio ~ ., data= data.set) 
 
-# LDA
+# LDA - Nuno
 lda.mod= lda(cardio ~ ., data= data.set)
 
 
-# QDA
+# QDA - MJ
 qda.mod= qda(cardio ~ ., data= data.set)
 
 
@@ -33,12 +33,12 @@ pred = predict(out, s=best.lambda, newx=x[test,] )
 mean((pred -y[test])^2)
 
 
-# Ridge Regression
+# Ridge Regression - Nuno
 #   * none of the coefficients will be zero since ridge regression does not perform variable selection
 ridge.mod = glmnet(x, y, alpha=0)
 
 
-# Lasso
+# Lasso - MJ
 #   * some coefficients might be zero
 lasso.mod = glmnet(x, y, alpha=1)
 
@@ -46,10 +46,10 @@ lasso.mod = glmnet(x, y, alpha=1)
 
 # 10.5 Lab 2: Clustering
 
-# K-Means
+# K-Means - Nuno
 #km.mod =kmeans(x,2, nstart=20)
 
-# Hierarchical classification 
+# Hierarchical classification - MJ
 dd = dist(X) # euclidean distance
 hh = hclust(dd,method="average")
 

@@ -10,6 +10,9 @@ require(fastDummies)
 require(FSA)
 require(plotrix)
 
+## seed
+set.seed(123)
+
 ## read data
 original.data= read.csv("./data/cardio-train.csv")
 headtail(original.data)
@@ -97,6 +100,7 @@ axis(2, las= 2)
 mtext(side= 3, line= 2, at= 1, cex= 1.2,
       expression(paste("Boxplot of height")))
 mtext(side= 3, line= 1, at= 1, cex= 0.7, "Outliers removed")
+
 
 ## weight
 summary(weight)
@@ -477,7 +481,30 @@ hist(aplo.out, breaks= seq(min(aplo.out), max(aplo.out), by= 10),
 mtext("Histograms of blood pressure",
       side= 3, line= -2, outer= T, cex= 2)
 
-## create dataframe
+
+## remove outliers from
+## height
+cardio.data.out = cardio.data[height.out.idx,]
+names(cardio.data.out) = c("age","gender", "height", "weight", "aphi", "aplo", "choles", "glucose", "smoke", "alcohol", "active", "cardio")
+write.csv(cardio.data.out, "./data/data_set_no_height_out.csv", row.names = FALSE)
+
+## height and weight
+cardio.data.out = cardio.data[height.out.idx,]
+
+weight.out= boxplot.stats(cardio.data.out$weight)$out
+weight.out.idx= !(cardio.data.out$weight %in% weight.out)
+cardio.data.out = cardio.data.out[weight.out.idx,]
+
+names(cardio.data.out) = c("age","gender", "height", "weight", "aphi", "aplo", "choles", "glucose", "smoke", "alcohol", "active", "cardio")
+write.csv(cardio.data.out, "./data/data_set_no_height_and_weight_out.csv", row.names = FALSE)
+
+## write to file cardio data (because of the small changes at the begining)
+names(cardio.data) = c("age","gender", "height", "weight", "aphi", "aplo", "choles", "glucose", "smoke", "alcohol", "active", "cardio")
+write.csv(cardio.data, "./data/cardio_data.csv", row.names = FALSE)
+
+
+
+## create dataframe (no transformations on the data)
 data.set= data.frame(age=     age,
                      gender=  gender,
                      height=  height,
@@ -501,6 +528,7 @@ anova(mod.lr.0)
 ### model with all variables
 mod.lr= lm(cardio ~ ., data= data.set)
 mod.lr
+
 #mod= lm(cardio ~
 #           age  +
 #           gender +

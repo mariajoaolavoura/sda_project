@@ -24,6 +24,7 @@ qda.mod= qda(cardio ~ ., data= data.set)
 
 # use cross-validation to choose the tuning parameter ??.
 # built-in cross-validation function, cv.glmnet() (default 10 fold cv)
+x = model.matrix(cardio~., data.set)[,-1]
 cv.out = cv.glmnet (x[train,], y[train])
 best.lambda = cv.out$lambda.min
 out = glmnet(x, y) #, alpha=... )

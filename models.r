@@ -3,7 +3,7 @@ library (glmnet) # Ridge Regression and Lasso models
 
 
 # Linear Regression - MJ
-mod.lr= lm(cardio ~ ., data= data.set) 
+lr.mod= lm(cardio ~ ., data= data.set)
 
 # LDA - Nuno
 lda.mod= lda(cardio ~ ., data= data.set)

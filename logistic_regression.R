@@ -1,6 +1,7 @@
 # Logistic Regression
 
 ## libraries
+library(scorecard) # split_df
 require(FSA)
 require(MASS)
 require(caret)
@@ -23,6 +24,7 @@ factorizefeatures = function(dataset){
                       return(dataset)
                     }
 
+
 #############################################
 ## read data - no transformations on the data)
 data.set= read.csv("./data/cardio_data.csv")
@@ -31,9 +33,9 @@ headtail(data.set)
 data.set = factorizefeatures(data.set)
 
 ## split data
-train.idx = sample(1:length(data.set$cardio), ceiling(length(data.set$cardio) * 0.7))
-train = data.set[train.idx, ]
-test = data.set[-train.idx, ]
+tts = split_df(data.set, ratio = 0.70, seed = 123)
+train = tts$train
+test = tts$test
 
 ## complete model
 logr.mod.1 = glm(cardio ~., data=train, family = "binomial")
@@ -85,9 +87,9 @@ headtail(data.set2)
 data.set2 = factorizefeatures(data.set2)
 
 ## split data
-train.idx2 = sample(1:length(data.set2$cardio), ceiling(length(data.set2$cardio) * 0.7))
-train2 = data.set2[train.idx2, ]
-test2 = data.set2[-train.idx2, ]
+tts2 = split_df(data.set2, ratio = 0.70, seed = 123)
+train2 = tts2$train
+test2 = tts2$test
 
 ### complete model
 logr.mod.3 = glm(cardio ~., data=train2, family = "binomial")

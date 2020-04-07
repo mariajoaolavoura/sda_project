@@ -1,6 +1,7 @@
 # Linear Regression
 
 ## libraries
+library(scorecard) # split_df
 require(FSA)
 require(car)
 require(lmtest)
@@ -11,6 +12,7 @@ set.seed(123)
 
 #############################################
 ## functions
+
 ##### residuals analysis
 plot.residuals = function(mod){
   par(mfrow=c(1,3))
@@ -60,9 +62,9 @@ data.set$alcohol = as.factor(data.set$alcohol)
 data.set$active  = as.factor(data.set$active)
 
 ## split data
-train.idx = sample(1:length(data.set$cardio), ceiling(length(data.set$cardio) * 0.7))
-train = data.set[train.idx, ]
-test = data.set[-train.idx, ]
+tts = split_df(data.set, ratio = 0.70, seed = 123)
+train = tts$train
+test = tts$test
 
 ### null model
 lr.mod.0= lm(cardio ~ 1)
@@ -106,9 +108,9 @@ data.set2$active  = as.factor(data.set2$active)
 str(data.set2)
 
 ## split data
-train.idx2 = sample(1:length(data.set2$cardio), ceiling(length(data.set2$cardio) * 0.7))
-train2 = data.set2[train.idx2, ]
-test2 = data.set2[-train.idx2, ]
+tts2 = split_df(data.set2, ratio = 0.70, seed = 123)
+train2 = tts2$train
+test2 = tts2$test
 
 ### complete model
 lr.mod.3= lm(cardio ~ ., data= train2)

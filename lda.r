@@ -1,3 +1,8 @@
+###
+## Linear Discriminat Analysis (LDA)
+###
+
+## libraries
 require(FSA) # for headtail
 require(ggplot2)
 require(MASS)
@@ -9,12 +14,27 @@ set.seed(123)
 data.set= read.csv("./data/cardio_data.csv")
 headtail(data.set)
 
-gender= as.factor(data.set$gender)
-choles= as.factor(data.set$choles)
-glucose= as.factor(data.set$glucose)
-smoke= as.factor(data.set$smoke)
-alcohol= as.factor(data.set$alcohol)
-active= as.factor(data.set$active)
+## list of categorical/binary variables
+## gender, choles, glucose, smoke, alcohol, active, cardio
+
+## convert categorical/binary variables to factor
+colNames.cat= c('gender', 'choles', 'glucose', 'smoke',
+                'alcohol', 'active', 'cardio')
+data.set[, colNames.cat]= lapply(data.set[, colNames.cat], factor)
+
+## extract variables
+age=     data.set$age
+gender=  data.set$gender
+height=  data.set$height/100 # in metres
+weight=  data.set$weight
+aphi=    data.set$aphi
+aplo=    data.set$aplo
+choles=  data.set$choles
+glucose= data.set$glucose
+smoke=   data.set$smoke
+alcohol= data.set$alcohol
+active=  data.set$active
+cardio=  data.set$cardio
 
 ## split data
 nr= nrow(data.set)
@@ -24,78 +44,75 @@ train= data.set[train.idx, ]
 test= data.set[-train.idx, ]
 
 ## remove height from data sets
-train$height= NULL
-test$height= NULL
+#train$height= NULL
+#test$height= NULL
 
 ## lda model
 lda.model= lda(cardio ~ ., data= train)
 
 ## predictions
-data.lda= predict(lda.model, newdata= test)
-data.lda.values= data.lda$class
+lda.data= predict(lda.model, newdata= test)
+lda.values= lda.data$class
 
 ## create plots
-#plot.lda= function(dataset, keyX, keyY, colorKey) {
-#  # create data frame with data
-#  plot.data= data.frame(
-#    dataset[keyX],
-#    dataset[keyY],
-#    dataset[colorKey]
-#  )
-#  names(plot.data)= c('a', 'b', 'c')
-#  
-#  # create grid of points
-#  grid= expand.grid(
-#    x= seq(min(dataset$a), max(dataset$a + 1),
-#           (max(dataset$a) - min(dataset$a))/50),
-#    y= seq(min(dataset$b - 1), max(dataset$b + 1),
-#           (max(dataset$b) - min(dataset$b))/50)
-#  )
-#  colnames(grid)= c('a', 'b')
-#  lda.mod= lda(c ~., data = dataset)
-#  grid$class <- predict(lda.mod, newdata = grid)$class
-#  grid$class
-#  
-#  ggplot(
-#    grid,
-#    aes(a, b, col= class)
-#  ) +
-#    labs(
-#      col= "Classes"
-#    ) +
-#    scale_colour_manual(
-#      values= cols,
-#      labels= c("Neg", "Pos")
-#    ) +
-#    geom_point(
-#      data= grid,
-#      aes(a, b, col= class),
-#      alpha= 0.1
-#    ) + 
-#    scale_size(range= c(0.5 - 0.2, 2)) +
-#    geom_point(
-#      data= dataframe[1:250,],
-#      aes(a, b, col= c),
-#      size= 1,
-#    ) +
-#    theme(axis.title.x= element_blank(),
-#          axis.title.y= element_blank(),
-#          axis.text.x=  element_blank(),
-#          axis.text.y=  element_blank())
-#}
-
-plot.data= data.frame(
-  Age= test$age,
-  Weight= test$weight,
-  Cardio= data.lda.values
-)
-
-(p1= ggplot(
-  data= plot.data,
-  aes(Age, Weight)
+## capitalise strings function
+lda.plot= function(testset, classvals, keyX, keyY,
+                   xcol= "lemonchiffon2", ycol= "firebrick3") {
+  # variables
+  vars= c(capFirst(keyX), capFirst(keyY))
+  
+  for (i in 1:2) {
+    if (vars[i] == 'Age') {
+      vars[i]= paste(vars[i], "(years)")
+    } else if (vars[i] == 'Height') {
+      vars[i]= paste(vars[i], "(m)")
+    } else if (vars[i] == 'Weight') {
+      vars[i]= paste(vars[i], "(kg)")
+    } else if (vars[i] == 'Aphi') {
+      vars[i]= paste("Systolic Blood Pressure (mm.Hg)")
+    } else if (vars[i] == 'Aplo') {
+      vars[i]= paste('Diastolic Blood Pressure (mm.Hg)')
+    } else if (vars[i] == 'Choles') {
+      vars[i]= paste('Cholesterol Level')
+    } else if (vars[i] == 'Glucose') {
+      vars[i]= "Glucose Level"
+    } else if (vars[i] == 'Smoke') {
+      vars[i]= paste("Smoking")
+    } else if (vars[i] == 'Active') {
+      vars[i]= "Physical Activity"
+    } else if (vars[i] == 'Cardio') {
+      vars[i]= "Cardiovascular Disease"
+    }
+  }
+  
+  ## create data frame with data
+  plot.data= data.frame(
+    testset[keyX],
+    testset[keyY],
+    classvals
+    )
+  names(plot.data)= c('x', 'y', 'Cardio')
+  
+  theme_set(theme_bw())
+  cols= c(xcol, ycol)
+  
+  ggplot(
+    data= plot.data,
+    aes(x, y)
   ) +
-  geom_point(aes(color= Cardio)) +
-  scale_color_manual(values= c("darkseagreen", "firebrick4")) +
-  #scale_colour_brewer(palette= 'BuPu', direction= -1) +
-  theme_bw()
-)
+  geom_point(
+    aes(colour= Cardio),
+    size= 1
+  ) +
+  labs(
+    x= vars[1],
+    y= vars[2],
+    col= "Disease"
+  ) +
+  scale_colour_manual(
+    values= cols,
+    labels= c("No", "Yes")
+  )
+}
+
+lda.plot(test, lda.values, "age", "weight")

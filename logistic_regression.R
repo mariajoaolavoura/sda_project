@@ -7,38 +7,50 @@ require(MASS)
 require(caret)
 
 ## seed
-set.seed(123)
+seed=123
+set.seed(seed)
+
+## split ratio
+split.ratio = c(0.7, 0.3)
 
 ## functions
 accFromCm = function(pred, true) { confusionMatrix(pred, true)$overall[1] }
 
 factorizefeatures = function(dataset){
-                      dataset$gender = as.factor(dataset$gender)
-                      dataset$choles  = as.factor(dataset$choles)
-                      dataset$glucose = as.factor(dataset$glucose)
-                      dataset$smoke = as.factor(dataset$smoke)
-                      dataset$alcohol = as.factor(dataset$alcohol)
-                      dataset$active  = as.factor(dataset$active)
-                      dataset$cardio = as.factor(dataset$cardio)
-                      
-                      return(dataset)
-                    }
+  dataset$gender = as.factor(dataset$gender)
+  dataset$choles  = as.factor(dataset$choles)
+  dataset$glucose = as.factor(dataset$glucose)
+  dataset$smoke = as.factor(dataset$smoke)
+  dataset$alcohol = as.factor(dataset$alcohol)
+  dataset$active  = as.factor(dataset$active)
+  dataset$cardio = as.factor(dataset$cardio)
+  
+  return(dataset)
+}
 
-
+get.logr.train.test.error = function(model, x.train, x.test, y.train, y.test, title){
+  pred.train = predict(model, x.train)
+  pred.train = as.factor(ifelse(pred.train > 0.50, 1, 0))
+  pred.test = predict(model, x.test)
+  pred.test = as.factor(ifelse(pred.test > 0.50, 1, 0))
+  
+  return(list(title, accFromCm(pred.train, y.train), accFromCm(pred.test, y.test)))
+}
 #############################################
 ## read data - no transformations on the data)
 data.set= read.csv("./data/cardio_data.csv")
 headtail(data.set)
 
+## factorization
 data.set = factorizefeatures(data.set)
 
 ## split data
-tts = split_df(data.set, ratio = 0.70, seed = 123)
-train = tts$train
-test = tts$test
+tts = split_df(data.set, ratio=split.ratio, seed=seed)
 
+
+###
 ## complete model
-logr.mod.1 = glm(cardio ~., data=train, family = "binomial")
+logr.mod.1 = glm(cardio ~., data=tts$train, family = "binomial")
 
 
 ### feature selection - based on EDA of cardio.r
@@ -52,30 +64,22 @@ logr.mod.2= glm(cardio ~ age  +
                   choles +
                   glucose +
                   active, 
-                  data= train, family = "binomial")
+                  data= tts$train, family = "binomial")
 
 
-### train test error
+## train test error
 logr.tt.res = data.frame(0,0,0)
 names(logr.tt.res) = c("method", "train.error", "test.error")
 
-logr.pred.train.1 = predict(logr.mod.1, train[,-12])
-logr.pred.train.1 = factor(ifelse(logr.pred.train.1 > 0.50, 1, 0))
-logr.pred.test.1 = predict(logr.mod.1, test[,-12])
-logr.pred.test.1 = factor(ifelse(logr.pred.test.1 > 0.50, 1, 0))
-logr.tt.res[1,] = list('with outliers - complete model', 
-                   accFromCm(logr.pred.train.1, train$cardio), 
-                   accFromCm(logr.pred.test.1, test$cardio))
+logr.tt.res[1,] = get.logr.train.test.error(logr.mod.1,
+                                            tts$train[,-12], tts$test[,-12],
+                                            tts$train$cardio,  tts$test$cardio,
+                                            'with outliers - complete model')
 
-
-logr.pred.train.2 = predict(logr.mod.2, train[,-12])
-logr.pred.train.2 = factor(ifelse(logr.pred.train.2 > 0.50, 1, 0))
-logr.pred.test.2 = predict(logr.mod.2, test[,-12])
-logr.pred.test.2 = factor(ifelse(logr.pred.test.2 > 0.50, 1, 0))
-logr.tt.res[nrow(logr.tt.res)+1,] = list('with outliers - with feature selection', 
-                               accFromCm(logr.pred.train.2, train$cardio), 
-                               accFromCm(logr.pred.test.2, test$cardio))
-
+logr.tt.res[nrow(logr.tt.res)+1,] = get.logr.train.test.error(logr.mod.2,
+                                                              tts$train[,-12], tts$test[,-12],
+                                                              tts$train$cardio,  tts$test$cardio,
+                                                              'with outliers - EDA feature selection')
 
 
 
@@ -87,12 +91,11 @@ headtail(data.set2)
 data.set2 = factorizefeatures(data.set2)
 
 ## split data
-tts2 = split_df(data.set2, ratio = 0.70, seed = 123)
-train2 = tts2$train
-test2 = tts2$test
+tts2 = split_df(data.set2, ratio=split.ratio, seed=seed)
+
 
 ### complete model
-logr.mod.3 = glm(cardio ~., data=train2, family = "binomial")
+logr.mod.3 = glm(cardio ~., data=tts2$train, family = "binomial")
 
 ### feature selection - based on EDA of cardio.r
 logr.mod.4= lm(cardio ~ age  +
@@ -103,29 +106,28 @@ logr.mod.4= lm(cardio ~ age  +
                choles +
                glucose +
                active,
-               data= train2, family = "binomial")
+               data= tts2$train, family = "binomial")
 
 
 ### train test error
-logr.pred.train.3 = predict(logr.mod.3, train[,-12])
-logr.pred.train.3 = factor(ifelse(logr.pred.train.3 > 0.50, 1, 0))
-logr.pred.test.3 = predict(logr.mod.3, test[,-12])
-logr.pred.test.3 = factor(ifelse(logr.pred.test.3 > 0.50, 1, 0))
-logr.tt.res[nrow(logr.tt.res)+1,] = list('no outliers - complete model', 
-                               accFromCm(logr.pred.train.3, train$cardio), 
-                               accFromCm(logr.pred.test.3, test$cardio))
 
-logr.pred.train.4 = predict(logr.mod.4, train[,-12])
-logr.pred.train.4 = factor(ifelse(logr.pred.train.4 > 0.50, 1, 0))
-logr.pred.test.4 = predict(logr.mod.4, test[,-12])
-logr.pred.test.4 = factor(ifelse(logr.pred.test.4 > 0.50, 1, 0))
-logr.tt.res[nrow(logr.tt.res)+1,] = list('no outliers - with feature selection', 
-                               accFromCm(logr.pred.train.4, train$cardio), 
-                               accFromCm(logr.pred.test.4, test$cardio))
+logr.tt.res[nrow(logr.tt.res)+1,] = get.logr.train.test.error(logr.mod.3,
+                                                              tts2$train[,-12], tts2$test[,-12],
+                                                              tts2$train$cardio,  tts2$test$cardio,
+                                                              'without outliers - complete model')
 
+logr.tt.res[nrow(logr.tt.res)+1,] = get.logr.train.test.error(logr.mod.4,
+                                                              tts2$train[,-12], tts2$test[,-12],
+                                                              tts2$train$cardio,  tts2$test$cardio,
+                                                              'without outliers - EDA feature selection')
 
 
 logr.tt.res
-#  no outliers - complete model, mod.3, performed the best
+# method train.error test.error
+# 1           with outliers - complete model   0.6885570  0.6929198
+# 2    with outliers - EDA feature selection   0.6878854  0.6922966
+# 3        without outliers - complete model   0.6905479  0.6839308
+# 4 without outliers - EDA feature selection   0.4984933  0.5021258
+
 
 # ROC curve?

@@ -7,41 +7,49 @@ require(MASS)
 require(caret)
 
 ## seed
-set.seed(123)
+seed=123
+set.seed(seed)
+
+## split ratio
+split.ratio = c(0.7, 0.3)
+
 
 ## functions
 accFromCm = function(pred, true) { confusionMatrix(pred, true)$overall[1] }
 
 factorizefeatures = function(dataset){
-                      dataset$gender = as.factor(dataset$gender)
-                      dataset$choles  = as.factor(dataset$choles)
-                      dataset$glucose = as.factor(dataset$glucose)
-                      dataset$smoke = as.factor(dataset$smoke)
-                      dataset$alcohol = as.factor(dataset$alcohol)
-                      dataset$active  = as.factor(dataset$active)
-                      dataset$cardio = as.factor(dataset$cardio)
-                      
-                      return(dataset)
-                   }
-
-split.data.indx = function(y, train.ratio){
-  return(sample(1:length(y), ceiling(length(y) * train.ratio)))
+  dataset$gender = as.factor(dataset$gender)
+  dataset$choles  = as.factor(dataset$choles)
+  dataset$glucose = as.factor(dataset$glucose)
+  dataset$smoke = as.factor(dataset$smoke)
+  dataset$alcohol = as.factor(dataset$alcohol)
+  dataset$active  = as.factor(dataset$active)
+  dataset$cardio = as.factor(dataset$cardio)
+  
+  return(dataset)
 }
+
+get.qda.train.test.error = function(model, x.train, x.test, y.train, y.test, title){
+  pred.train = predict(model, x.train)$class
+  pred.test = predict(model, x.test)$class
+  
+  return( list(title, accFromCm(pred.train, y.train), accFromCm(pred.test, y.test)))
+}
+
 
 #############################################
 ## read data - no transformations on the data)
 data.set= read.csv("./data/cardio_data.csv")
 headtail(data.set)
 
+## factorization
 data.set = factorizefeatures(data.set)
 
 ## split data
-tts = split_df(data.set, ratio = 0.70, seed = 123)
-train = tts$train
-test = tts$test
+tts = split_df(data.set, ratio=split.ratio, seed=seed)
 
 ## complete model
-qda.mod.1 = qda(cardio ~ ., data=train)
+qda.mod.1 = qda(cardio ~ ., data=tts$train)
 
 
 ### feature selection - based on EDA of cardio.r
@@ -54,27 +62,22 @@ qda.mod.2= qda(cardio ~ age  +
                   choles +
                   glucose +
                   active, 
-                  data=train)
+                  data=tts$train)
 
 
 ### train test error
 qda.tt.res = data.frame(0,0,0)
 names(qda.tt.res) = c("method", "train.error", "test.error")
 
-qda.pred.train.1 = predict(qda.mod.1, train[,-12])$class
-qda.pred.test.1 = predict(qda.mod.1, test[,-12])$class
-qda.tt.res[1,] = list('with outliers - complete model', 
-                  accFromCm(qda.pred.train.1, train$cardio), 
-                  accFromCm(qda.pred.test.1, test$cardio))
+qda.tt.res[1,] = get.qda.train.test.error( qda.mod.1,
+                                           tts$train[,-12], tts$test[,-12],
+                                           tts$train$cardio, tts$test$cardio,
+                                           'with outliers - complete model')
 
-
-qda.pred.train.2 = predict(qda.mod.2, train[,-12])$class
-qda.pred.test.2 = predict(qda.mod.2, test[,-12])$class
-qda.tt.res[nrow(qda.tt.res)+1,] = list('with outliers - with feature selection', 
-                               accFromCm(qda.pred.train.2, train$cardio), 
-                               accFromCm(qda.pred.test.2, test$cardio))
-
-
+qda.tt.res[nrow(qda.tt.res)+1,] = get.qda.train.test.error(qda.mod.2,
+                                                           tts$train[,-12], tts$test[,-12],
+                                                           tts$train$cardio, tts$test$cardio,
+                                                           'with outliers - EDA feature selection')
 
 
 #############################################
@@ -85,12 +88,11 @@ headtail(data.set2)
 data.set2 = factorizefeatures(data.set2)
 
 ## split data
-tts2 = split_df(data.set2, ratio = 0.70, seed = 123)
-train2 = tts2$train
-test2 = tts2$test
+tts2 = split_df(data.set2, ratio=split.ratio, seed=seed)
+
 
 ## complete model
-qda.mod.3 = qda(cardio ~ ., data=train2)
+qda.mod.3 = qda(cardio ~ ., data=tts2$train)
 
 
 ### feature selection - based on EDA of cardio.r
@@ -103,22 +105,26 @@ qda.mod.4= qda(cardio ~ age  +
                  choles +
                  glucose +
                  active, 
-               data=train2)
+               data=tts2$train)
 
 
 ### train test error
-qda.pred.train.3 = predict(qda.mod.3, train[,-12])$class
-qda.pred.test.3 = predict(qda.mod.3, test[,-12])$class
-qda.tt.res[nrow(qda.tt.res)+1,] = list('with outliers - complete model', 
-                      accFromCm(qda.pred.train.3, train$cardio), 
-                      accFromCm(qda.pred.test.3, test$cardio))
+qda.tt.res[nrow(qda.tt.res)+1,] = get.qda.train.test.error(qda.mod.3,
+                                                           tts2$train[,-12], tts2$test[,-12],
+                                                           tts2$train$cardio, tts2$test$cardio,
+                                                           'without outliers - complete model')
+
+qda.tt.res[nrow(qda.tt.res)+1,] = get.qda.train.test.error(qda.mod.4,
+                                                           tts2$train[,-12], tts2$test[,-12],
+                                                           tts2$train$cardio, tts2$test$cardio,
+                                                           'without outliers - EDA feature selection')
 
 
-qda.pred.train.4 = predict(qda.mod.4, train[,-12])$class
-qda.pred.test.4 = predict(qda.mod.4, test[,-12])$class
-qda.tt.res[nrow(qda.tt.res)+1,] = list('with outliers - with feature selection', 
-                                       accFromCm(qda.pred.train.4, train$cardio), 
-                                       accFromCm(qda.pred.test.4, test$cardio))
 
 
 qda.tt.res
+# method train.error test.error
+# 1           with outliers - complete model   0.5891654  0.5920138
+# 2    with outliers - EDA feature selection   0.5879851  0.5910071
+# 3        without outliers - complete model   0.5956583  0.5911682
+# 4 without outliers - EDA feature selection   0.5938749  0.5896705

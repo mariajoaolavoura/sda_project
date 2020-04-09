@@ -78,14 +78,16 @@ ridge.train= model.matrix(y.train ~ ., data= x.train)[, -1] # remove intercept
 ridge.test=  model.matrix(y.test ~ ., data= x.test)[, -1]
 
 ## optimal values for lambda (10-fold cross-validation)
-alpha0.fit= cv.glmnet(ridge.train, y.train,
-                      type.measure= "deviance", alpha= 0, family= "binomial")
+#alpha0.fit= cv.glmnet(ridge.train, y.train,
+#                      type.measure= "deviance", alpha= 0, family= "binomial")
+alpha0.fit= cv.glmnet(ridge.train, as.numeric(as.character(y.train)), alpha= 0)
 
 ## predict values on test set
-alpha0.predict= predict(alpha0.fit, s= alpha0.fit$lambda.1se, newx= ridge.test)
+#alpha0.predict= predict(alpha0.fit, s= alpha0.fit$lambda.1se, newx= ridge.test)
 # alpha0.predict gives values in ]-2.01, 90.4[
 # Maybe these are log(odds)
 # TODO: convert predictions to factor/binary (0 or 1)
 
+alpha0.predict= predict(alpha01.fit, s= alpha01.fit$lambda.min, newx= ridge.test)
 ## errors
-# TODO: estimate error of model
+# TODO: estimate accuracy or error of model

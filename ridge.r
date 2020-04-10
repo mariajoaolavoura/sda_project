@@ -15,11 +15,11 @@ set.seed(123)
 #'
 #' Split data set into train and test sets
 #' @author Nuno R. C. Gomes <nunorcgomes@@gmail.com> (2020/03/18)
-#' @param dataset A data set.
-#' @param target Target variable (name or index).
-#' @param frac Proportion of data set for training.
+#' @param dataset A data set
+#' @param target Target variable (name or index)
+#' @param frac Proportion of data set for training
 #' @param seed A seed for the sampling; Default: 42
-#' @return A vector \code{tts} of mode "list".
+#' @return Vector \code{tts} of mode "list"
 #' @examples
 #' train_test_split(pid, "diabetes", 0.8)
 train_test_split= function(dataset, target, frac, seed= 42) {
@@ -77,10 +77,15 @@ y.test=  tts$y_test
 ridge.train= model.matrix(y.train ~ ., data= x.train)[, -1] # remove intercept
 ridge.test=  model.matrix(y.test ~ ., data= x.test)[, -1]
 
+## convert target sets from integer to double (for glmnet)
+y.train= as.numeric(as.character(y.train))
+y.test=  as.numeric(as.character(y.train))
+
 ## optimal values for lambda (10-fold cross-validation)
 #alpha0.fit= cv.glmnet(ridge.train, y.train,
 #                      type.measure= "deviance", alpha= 0, family= "binomial")
-alpha0.fit= cv.glmnet(ridge.train, as.numeric(as.character(y.train)), alpha= 0)
+alpha0.fit= cv.glmnet(ridge.train, y.train, alpha= 0)
+lambda= alpha0.fit$lambda.min
 
 ## predict values on test set
 #alpha0.predict= predict(alpha0.fit, s= alpha0.fit$lambda.1se, newx= ridge.test)
@@ -88,6 +93,7 @@ alpha0.fit= cv.glmnet(ridge.train, as.numeric(as.character(y.train)), alpha= 0)
 # Maybe these are log(odds)
 # TODO: convert predictions to factor/binary (0 or 1)
 
-alpha0.predict= predict(alpha01.fit, s= alpha01.fit$lambda.min, newx= ridge.test)
+alpha0.predict= predict(alpha01.fit, s= lambda, newx= ridge.test)
+ridge.vals= as.factor(ifelse(alpha0.predict[, 1] > 0.5, 1, 0))
 ## errors
 # TODO: estimate accuracy or error of model

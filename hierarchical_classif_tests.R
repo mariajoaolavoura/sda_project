@@ -8,6 +8,9 @@ require(fields) # image.plot
 require(dplyr) # %>%
 require(class)
 require(caret)
+require(dendextend) #circle dendogram
+require(circlize) #circle dendogram
+require(cluster)
 
 
 ## seed
@@ -23,6 +26,31 @@ n.groups = 2
 
 ## functions
 accFromCm = function(pred, true) { confusionMatrix(pred, true)$overall[1] }
+
+factorizefeatures = function(dataset){
+  dataset$gender = as.factor(dataset$gender)
+  dataset$choles  = as.factor(dataset$choles)
+  dataset$glucose = as.factor(dataset$glucose)
+  dataset$smoke = as.factor(dataset$smoke)
+  dataset$alcohol = as.factor(dataset$alcohol)
+  dataset$active  = as.factor(dataset$active)
+  dataset$cardio = as.factor(dataset$cardio)
+  
+  return(dataset)
+}
+
+unfactorizefeatures = function(dataset){
+  dataset$gender = as.numeric(as.character(dataset$gender))
+  dataset$choles  = as.numeric(as.character(dataset$choles))
+  dataset$glucose = as.numeric(as.character(dataset$glucose))
+  dataset$smoke = as.numeric(as.character(dataset$smoke))
+  dataset$alcohol = as.numeric(as.character(dataset$alcohol))
+  dataset$active  = as.numeric(as.character(dataset$active))
+  dataset$cardio = as.numeric(as.character(dataset$cardio))
+  
+  return(dataset)
+}
+
 
 reduce.data.set = function(dataset, leng, seed){
   set.seed(seed)
@@ -59,15 +87,15 @@ feature.selection.with.t.stat = function(dataset){
   return(dataset[,b[4:11]]) #removing the 3 lowest
 }
 
-get.hclust.train.test.error = function(model, n.groups, x.train, x.test, y.train, y.test, title){
+get.hclust.train.test.error = function(model, n.groups, x.train, x.test, y.train, y.test){
   # based on https://stackoverflow.com/questions/21064315/how-do-i-predict-new-datas-cluster-after-clustering-training-data
   groups = cutree(model, k=n.groups)
   groups = groups-1
-  table(groups)
+  #table(groups)
   pred.train = knn(train=x.train, test=x.train, cl=groups, k=1)
   pred.test = knn(train=x.train, test=x.test, cl=groups, k=1)
   
-  return(list(title,accFromCm(pred.train, y.train),accFromCm(pred.test, y.test)))
+  return(list(accFromCm(pred.train, y.train),accFromCm(pred.test, y.test)))
 }
 
 plot.image.plot = function(x, xlab, main){
@@ -81,48 +109,110 @@ plot.image.plot = function(x, xlab, main){
 }
 
 #############################################
+#############################################
+# Euclidean distance
+
 setwd("C:/Users/mjlav/MEOCloud/Universidade/mestrado_up/ano1/statistic_data_analysis/project/sda_project")
 ## read data - no transformations on the data)
 data.set= read.csv("./data/cardio_data.csv")
 headtail(data.set)
 
 ## dimension reduction
-data.set = reduce.data.set(data.set, 150, seed)
+data.set = reduce.data.set(data.set, 50, seed)
 
 ## split data
 tts = split_df(data.set, ratio = split.ratio, seed = seed)
 
-## standardize the data
-tts$train = standardize.data.set(tts$train) 
-tts$test = standardize.data.set(tts$test)
-
+## standardize the data for eucidean distance
+std.train = standardize.data.set(tts$train)
+std.test = standardize.data.set(tts$test)
 
 ###
 ## complete model
-x.train.1 = tts$train[,-12]
-x.test.1 = tts$test[,-12]
+x.train.1 = std.train[,-12]
+x.test.1 = std.test[,-12]
 
 # plot the data, diseases in rows and predictors in columns
 plot.image.plot(x.train.1,
                 "age,gender,height,weight,aphi,aplo,choles,glucose,smoke,alcohol,active",
                 "main" )
+heatmap(x.train.1)
+# The rows are ordered based on the order of the hierarchical clustering. 
+# The colored bar indicates the cardio category each row belongs to. 
+# The color in the heatmap indicates the length of each measurement 
+# (from light yellow to dark red).
 
-# do hierarchical classification using the average link
+
+# plot dendograms for different methods
+# label colors represent true value
+colors =  c("#00AFBB","#FC4E07")
+maped.true.values = as.numeric(tts$train$cardio) # as.numeric because colors must be positive
+
+df = data.frame(0,0,0,0)
+names(df) = c("method", "order", "dendogram", "accuracy")
+
+methods.list = list("ward.D", "ward.D2", "single", "complete", "average", "mcquitty", "median", "centroid")
+dist = daisy(x.train.1, metric="euclidean")
+
+for(m in methods.list){
+  print(m)
+  hier.mod = hclust(dist, method=m)
+  label.colors = colors[maped.true.values[hier.mod$order]]
+  d = fviz_dend(hier.mod, k=n.groups, cex=0.5, 
+                #k_colors = colors, 
+                label_cols = label.colors,
+                #horiz = T,
+                ggtheme=theme_minimal(),
+                main=m)
+  
+  print(d)
+  df[nrow(df)+1,] = list(m,
+                         list(hier.mod$order),
+                         list(d),
+                         list(get.hclust.train.test.error(hier.mod, n.groups,
+                                                          x.train.1, x.test.1,
+                                                          as.factor(tts$train$cardio),as.factor(tts$test$cardio))))
+}
+# by looking at plots (data.set size = 50), ward and ward.d2 are the best
+df$accuracy
+# the accuracy of Ward.D2 is the best
+
+euclidean.dist = daisy(x.train.1, metric ="euclidean")
+hier.mod = hclust(euclidean.dist, method="ward.D2")
+
+# color using kmeans cluster
+km.clust <- kmeans(x.train.1, n.groups)$cluster
+
+label.colors = colors[km.clust[hier.mod$order]]
+fviz_dend(hier.mod, k = n.groups, 
+          #k_colors = colors, 
+          label_cols = label.colors,
+          cex = 0.6, main="Ward.D2 - k means coloring")
+
+
+
+# do hierarchical classification using the ward.D2 method
 # patients order
-euclid.dist.pat.1 = dist(x.train.1) # euclidean distance
-hier.mod.pat.1 = hclust(euclid.dist.pat.1, method="average")
-patients.order = hier.mod.pat.1$order
+patients.order = hier.mod$order
 
+label.colors = colors[maped.true.values[hier.mod$order]]
 # draw the dendrogram.
-fviz_dend(hier.mod.pat.1, k=n.groups, cex=0.5, k_colors = c("#00AFBB","#FC4E07"),
-          color_labels_by_k=TRUE, ggtheme=theme_minimal())
+fviz_dend(hier.mod, k=n.groups, cex=0.5, 
+          #k_colors = colors, 
+          label_cols = label.colors,
+          ggtheme=theme_minimal(),  main="Ward.D2 - true coloring")
 
+dend = as.dendrogram(hier.mod)
+par(mar = rep(0,4))
+circlize_dendrogram(dend)
+
+# heatmap
 plot.image.plot(x.train.1[patients.order,],
                 "age,gender,height,weight,aphi,aplo,choles,glucose,smoke,alcohol,active",
                 "patients order" )
 
 
-#predictors order
+# predictors order
 euclid.dist.pred.1 = dist(t(x.train.1)) # euclidean distance
 hier.mod.pred.1 = hclust(euclid.dist.pred.1, method="average")
 predictors.order = hier.mod.pred.1$order
@@ -131,13 +221,17 @@ predictors.order = hier.mod.pred.1$order
 fviz_dend(hier.mod.pred.1, k=n.groups, cex=0.5, k_colors = c("#00AFBB","#FC4E07"),
           color_labels_by_k=TRUE, ggtheme=theme_minimal())
 
+dend.pred.1 = as.dendrogram(hier.mod.pred.1)
+par(mar = rep(0,4))
+circlize_dendrogram(dend.pred.1)
 
+# heatmap
 plot.image.plot(x.train.1[,predictors.order],
                 "aplo,aphi,age,choles,glucose,active,weight,gender,height,smoke,alcohol", 
                 "predictors order" )
 
 
-#xlab must be equal to names(data.set[,predictors.order])
+# xlab must be equal to names(data.set[,predictors.order])
 # patients and predictors order
 plot.image.plot(x.train.1[patients.order,predictors.order],
                 "aplo,aphi,age,choles,glucose,active,weight,gender,height,smoke,alcohol", 
@@ -146,202 +240,134 @@ plot.image.plot(x.train.1[patients.order,predictors.order],
 
 
 
-library(dendextend)
-require(circlize)
+######################################################################
+######################################################################
+# Gowers distance
 
-dend.1 = as.dendrogram(hier.mod.pat.1)
-par(mar = rep(0,4))
-circlize_dendrogram(dend.1)
+setwd("C:/Users/mjlav/MEOCloud/Universidade/mestrado_up/ano1/statistic_data_analysis/project/sda_project")
+## read data - no transformations on the data)
+data.set= read.csv("./data/cardio_data.csv")
+headtail(data.set)
 
-dend.1 = as.dendrogram(hier.mod.pred.1)
-par(mar = rep(0,4))
-circlize_dendrogram(dend.1)
+## dimension reduction
+data.set = reduce.data.set(data.set, 50, seed)
 
+## factorize the data for gowers distance (so the categorical variables are treated with nominal scale)
+data.set = factorizefeatures(data.set)
 
-#draw the heatmap
-heatmap(x.train.1)
+## split data
+tts = split_df(data.set, ratio = split.ratio, seed = seed)
+
+###
+## complete model
+x.train.1 = tts$train[,-12]
+x.test.1 = tts$test[,-12]
+
+# plot the data, diseases in rows and predictors in columns
+# plot.image.plot(x.train.1,
+#                 "age,gender,height,weight,aphi,aplo,choles,glucose,smoke,alcohol,active",
+#                 "main" )
+# heatmap(x.train.1)
 # The rows are ordered based on the order of the hierarchical clustering. 
 # The colored bar indicates the cardio category each row belongs to. 
 # The color in the heatmap indicates the length of each measurement 
 # (from light yellow to dark red).
 
 
+# plot dendograms for different methods
+colors =  c("#00AFBB","#FC4E07")
+maped.true.values = as.numeric(tts$train$cardio) # as.numeric because colors must be positive
+label.colors = colors[maped.true.values[hier.mod$order]]
+
+df = data.frame(0,0,0,0)
+names(df) = c("method", "order", "dendogram", "accuracy")
+
+methods.list = list("ward.D", "ward.D2", "single", "complete", "average", "mcquitty", "median", "centroid")
+gower.dist = daisy(x.train.1, metric ="gower")
+
+for(m in methods.list){
+  print(m)
+  hier.mod = hclust(gower.dist, method=m)
+  d = fviz_dend(hier.mod, k=n.groups, cex=0.5, 
+                k_colors = colors,
+                label_cols = label.colors,
+                #horiz = T,
+                ggtheme=theme_minimal(),
+                main=m)
+  
+  print(d)
+  df[nrow(df)+1,] = list(m,
+                         list(hier.mod$order),
+                         list(d),
+                         list(get.hclust.train.test.error(hier.mod, n.groups,
+                                                     x.train.1, x.test.1,
+                                                     as.factor(tts$train$cardio),as.factor(tts$test$cardio))))
+}
 
 
-
-###
-## feature selection - based on EDA of cardio.r
-# remove gender, smoke and alcohol 
-x.train.2 = tts$train[, -c(2, 9, 10, 12)]
-x.test.2 = tts$test[, -c(2, 9, 10, 12)]
-
-# plot the data, diseases in rows and predictors in columns
-image.plot(1:ncol(x.train.2), 1:nrow(x.train.2), t(x.train.2), # t(x) matrix transpose
-           col=tim.colors(8),
-           xlab="alcohol,glucose,smoke,age,weight,choles,aplo,aphi", ylab="No. cardio disease", 
-           cex.lab=1)
-
-# Do hierarchical classification using the average link 
-euclid.dist.2 = dist(x.train.2) # euclidean distance
-hier.mod.2 = hclust(euclid.dist.2, method="average")
-
-# draw the dendrogram.
-fviz_dend(hier.mod.2, k=n.groups, cex = 0.5, k_colors = c("#00AFBB","#FC4E07"),
-          color_labels_by_k=TRUE, ggtheme = theme_minimal())
+df$accuracy
 
 
+# color using kmeans cluster
+km.clust <- kmeans(x.train.1, n.groups)$cluster
+gower.dist = daisy(x.train.1, metric ="gower")
+hier.mod = hclust(gower.dist, method="mcquitty")
+fviz_dend(hier.mod, k = n.groups, 
+          k_colors = c("#00AFBB","#FC4E07"),
+          label_cols =  km.clust[hier.mod$order], cex = 0.6)
 
-###
-## feature selection - based on t statistics
-x.train.3 = feature.selection.with.t.stat(tts$train)
-# removed "alcohol" "gender"  "glucose"
-names(x.train.3)
-
-t = data.frame(tts$test)
-x.test.3 = t[, names(x.train.3)]
-
-# plot the data, diseases in rows and predictors in columns
-image.plot(1:ncol(x.train.3), 1:nrow(x.train.3), t(x.train.3), # t(x) matrix transpose
-           col=tim.colors(8),
-           xlab="alcohol,glucose,smoke,age,weight,choles,aplo,aphi", ylab="No. cardio disease", 
-           cex.lab=1)
-
-# do hierarchical classification using the average link 
-euclid.dist.3 = dist(x.train.3) # euclidean distance
-hier.mod.3 = hclust(euclid.dist.3, method="average")
-
-# draw the dendrogram.
-fviz_dend(hier.mod.3, k =n.groups, cex = 0.5, k_colors = c("#00AFBB","#FC4E07"),
-          color_labels_by_k = TRUE, ggtheme = theme_minimal())
-
-
-
-
-
-### train test error
-
-hier.tt.res = data.frame(0,0,0)
-names(hier.tt.res) = c("method", "train.error", "test.error")
-
-
-hier.tt.res[1,] = get.hclust.train.test.error(hier.mod.1, n.groups,
-                                              x.train.1, x.test.1,
-                                              as.factor(tts$train$cardio),as.factor(tts$test$cardio),
-                                              'with outliers - complete model')
-
-hier.tt.res[nrow(hier.tt.res)+1,] = get.hclust.train.test.error(hier.mod.2, n.groups,
-                                                                x.train.2, x.test.2,
-                                                                as.factor(tts$train$cardio),as.factor(tts$test$cardio),
-                                                                'with outliers - EDA feature selection')
-
-
-hier.tt.res[nrow(hier.tt.res)+1,] = get.hclust.train.test.error(hier.mod.3, n.groups,
-                                                                x.train.3, x.test.3,
-                                                                as.factor(tts$train$cardio),as.factor(tts$test$cardio),
-                                                                'with outliers - t stats feature selection')
-
-hier.tt.res
-
-
-
-
-#############################################
-## read data - no height outliers
-data.set2= read.csv("./data/data_set_no_height_out.csv")
-headtail(data.set2)
-
-## dimension reduction
-data.set2 = data.set2[1:144, ]
-
-## standardize the data
-data.set2 = standardize.data.set(data.set2)
-
-## split data
-tts2 = split_df(data.set2, ratio = split.ratio, seed = seed)
-#indx = sapply(breast, is.factor)
-#breast[indx] = lapply(breast[indx], function(x) as.numeric(as.character(x)))
-
-
-
-###
-## complete model
-x.train.4 = tts2$train[,-12]
-x.test.4 = tts2$test[,-12]
-
-# plot the data, diseases in rows and predictors in columns
-image.plot(1:ncol(x.train.4), 1:nrow(x.train.4), t(x.train.4), # t(train) matrix transpose
-           col=tim.colors(11),
-           xlab="age,gender,height,weight,aphi,aplo,choles,glucose,smoke,alcohol,active", ylab="No. cardio disease", 
-           cex.lab=1)
 
 
 # do hierarchical classification using the average link
-euclid.dist.4 = dist(x.train.4) # euclidean distance
-hier.mod.4 = hclust(euclid.dist.4, method="average")
+# patients order
+method="average"
+gower.dist.pat.1 = daisy(x.train.1, metric ="gower")
+hier.mod.pat.1 = hclust(gower.dist.pat.1, method=method)
+patients.order = hier.mod.pat.1$order
 
 # draw the dendrogram.
-fviz_dend(hier.mod.4, k =n.groups, cex = 0.5, k_colors = c("#00AFBB","#FC4E07"),
-          color_labels_by_k = TRUE, ggtheme = theme_minimal())
+fviz_dend(hier.mod, k=n.groups, cex=0.5, 
+          k_colors = colors,
+          label_cols = label.colors,
+          #horiz = T,
+          ggtheme=theme_minimal(),
+          main=method)
+
+# dend.pat.1 = as.dendrogram(hier.mod.pat.1)
+# par(mar = rep(0,4))
+# circlize_dendrogram(dend.pat.1)
+
+# heatmap
+# works better with standardized variables...
+plot.image.plot(unfactorizefeatures(x.train.1[patients.order,]),
+                "age,gender,height,weight,aphi,aplo,choles,glucose,smoke,alcohol,active",
+                "patients order" )
 
 
-###
-## feature selection - based on EDA of cardio.r
-# remove gender, smoke and alcohol 
-x.train.5 = tts2$train[, -c(2, 9, 10, 12)]
-x.test.5 = tts2$test[, -c(2, 9, 10, 12)]
-
-# plot the data, diseases in rows and predictors in columns
-image.plot(1:ncol(x.train.5), 1:nrow(x.train.5), t(x.train.5), # t(x) matrix transpose
-           col=tim.colors(8),
-           xlab="alcohol,glucose,smoke,age,weight,choles,aplo,aphi", ylab="No. cardio disease", 
-           cex.lab=1)
-
-# Do hierarchical classification using the average link 
-euclid.dist.5 = dist(x.train.5) # euclidean distance
-hier.mod.5 = hclust(euclid.dist.5, method="average")
-
-# draw the dendrogram.
-fviz_dend(hier.mod.5, k =n.groups, cex = 0.5, k_colors = c("#00AFBB","#FC4E07"),
-          color_labels_by_k = TRUE, ggtheme = theme_minimal())
-
-
-###
-## feature selection - based on t statistics
-x.train.6 = feature.selection.with.t.stat(tts2$train)
-# removed "alcohol" "gender"  "glucose"
-names(x.train.6)
-
-t = data.frame(tts2$test)
-x.test.6 = t[, names(x.train.6)]
-
-# plot the data, diseases in rows and predictors in columns
-image.plot(1:ncol(x.train.6), 1:nrow(x.train.6), t(x.train.6), # t(x) matrix transpose
-           col=tim.colors(8),
-           xlab="alcohol,glucose,smoke,age,weight,choles,aplo,aphi", ylab="No. cardio disease", 
-           cex.lab=1)
-
-# do hierarchical classification using the average link 
-euclid.dist.6 = dist(x.train.6) # euclidean distance
-hier.mod.6 = hclust(euclid.dist.6, method="average")
-
-# draw the dendrogram.
-fviz_dend(hier.mod.6, k =n.groups, cex = 0.5, k_colors = c("#00AFBB","#FC4E07"),
-          color_labels_by_k = TRUE, ggtheme = theme_minimal())
+# # predictors order
+# euclid.dist.pred.1 = dist(t(x.train.1)) # euclidean distance
+# hier.mod.pred.1 = hclust(gower.dist.pred.1, method="average")
+# predictors.order = hier.mod.pred.1$order
+# 
+# # draw the dendrogram.
+# fviz_dend(hier.mod.pred.1, k=n.groups, cex=0.5, k_colors = c("#00AFBB","#FC4E07"),
+#           color_labels_by_k=TRUE, ggtheme=theme_minimal())
+# 
+# dend.pred.1 = as.dendrogram(hier.mod.pred.1)
+# par(mar = rep(0,4))
+# circlize_dendrogram(dend.pred.1)
+# 
+# # heatmap
+# plot.image.plot(x.train.1[,predictors.order],
+#                 "aplo,aphi,age,choles,glucose,active,weight,gender,height,smoke,alcohol", 
+#                 "predictors order" )
+# 
+# 
+# # xlab must be equal to names(data.set[,predictors.order])
+# # patients and predictors order
+# plot.image.plot(x.train.1[patients.order,predictors.order],
+#                 "aplo,aphi,age,choles,glucose,active,weight,gender,height,smoke,alcohol", 
+#                 "patients and predictors order" )
 
 
 
-hier.tt.res[nrow(hier.tt.res)+1,] = get.hclust.train.test.error(hier.mod.4, n.groups,
-                                                                x.train.4, x.test.4,
-                                                                as.factor(tts2$train$cardio),as.factor(tts2$test$cardio),
-                                                                'without outliers - complete model')
-
-hier.tt.res[nrow(hier.tt.res)+1,] = get.hclust.train.test.error(hier.mod.5, n.groups,
-                                                                x.train.5, x.test.5,
-                                                                as.factor(tts2$train$cardio),as.factor(tts2$test$cardio),
-                                                                'without outliers - EDA feature selection')
-
-hier.tt.res[nrow(hier.tt.res)+1,] = get.hclust.train.test.error(hier.mod.6, n.groups,
-                                                                x.train.6, x.test.6,
-                                                                as.factor(tts2$train$cardio),as.factor(tts2$test$cardio),
-                                                                'without outliers - t stats feature selection')
-hier.tt.res

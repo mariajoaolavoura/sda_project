@@ -1,9 +1,8 @@
 ###
-## Ridge Regression
+## K-Means Clustering
 ###
 
 ## libraries
-require(glmnet)
 require(FSA)
 
 ## seed
@@ -74,26 +73,24 @@ y.train= tts$y_train
 x.test=  tts$X_test
 y.test=  tts$y_test
 
-ridge.train= model.matrix(y.train ~ ., data= x.train)[, -1] # remove intercept
-ridge.test=  model.matrix(y.test ~ ., data= x.test)[, -1]
+## k-means
+kmax= 20
+clusters= vector(mode= "list", length= kmax)
+clusters[[1]]= kmeans(x.train, 1)
+diffs= array(dim= kmax)
+diffs[1]= 0
+tots= array(dim= kmax)
+tots[1]= kmeans(x.train, 1)$tot.withinss
 
-## convert target sets from integer to double (for glmnet)
-y.train= as.numeric(as.character(y.train))
-y.test=  as.numeric(as.character(y.train))
+for (k in 2:kmax) {
+  tmp= kmeans(x.train, k, nstart= 25)
+  clusters[[k]]= tmp
+  tots[k]= tmp$tot.withinss
+  diffs[k]= clusters[[k-1]]$tot.withinss - tmp$tot.withinss
+}
 
-## optimal values for lambda (10-fold cross-validation)
-#alpha0.fit= cv.glmnet(ridge.train, y.train,
-#                      type.measure= "deviance", alpha= 0, family= "binomial")
-alpha0.fit= cv.glmnet(ridge.train, y.train, alpha= 0)
-lambda= alpha0.fit$lambda.min
 
-## predict values on test set
-#alpha0.predict= predict(alpha0.fit, s= alpha0.fit$lambda.1se, newx= ridge.test)
-# alpha0.predict gives values in ]-2.01, 90.4[
-# Maybe these are log(odds)
-# TODO: convert predictions to factor/binary (0 or 1)
+ggplot() +
+  geom_line(aes(x= 1:20, y= diffs), size= 1.2, col= "blue") +
+  labs(x= "k", y= "Variation")
 
-alpha0.predict= predict(alpha01.fit, s= lambda, newx= ridge.test)
-ridge.vals= as.factor(ifelse(alpha0.predict[, 1] > 0.5, 1, 0))
-## errors
-# TODO: estimate accuracy or error of model

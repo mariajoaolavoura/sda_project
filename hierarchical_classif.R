@@ -174,18 +174,19 @@ for(m in methods.list){
                                                           as.factor(tts$train$cardio),as.factor(tts$test$cardio))))
 }
 # by looking at plots (data.set size = 50), ward and ward.d2 are the best
-df$accuracy
+df$method[3]
+df$accuracy[3]
 # the accuracy of Ward.D2 is the best
 
 euclidean.dist = daisy(x.train.1, metric ="euclidean")
 hier.mod = hclust(euclidean.dist, method="ward.D2")
 
 # color using kmeans cluster
-km.clust <- kmeans(x.train.1, n.groups)$cluster
+km.clust = kmeans(x.train.1, n.groups)$cluster
 
 label.colors = colors[km.clust[hier.mod$order]]
 fviz_dend(hier.mod, k = n.groups, 
-          #k_colors = colors, 
+          k_colors = colors, 
           label_cols = label.colors,
           cex = 0.6, main="Ward.D2 - k means coloring")
 
@@ -289,7 +290,7 @@ for(m in methods.list){
   print(m)
   hier.mod = hclust(gower.dist, method=m)
   d = fviz_dend(hier.mod, k=n.groups, cex=0.5, 
-                k_colors = colors,
+                #k_colors = colors,
                 label_cols = label.colors,
                 #horiz = T,
                 ggtheme=theme_minimal(),
@@ -306,32 +307,36 @@ for(m in methods.list){
 
 
 df$accuracy
+df$method[3]
+df$accuracy[3]
+df$method[5]
+df$accuracy[5]
 
+method = "ward.D2"
 
 # color using kmeans cluster
-km.clust <- kmeans(x.train.1, n.groups)$cluster
+km.clust = kmeans(x.train.1, n.groups)$cluster
 gower.dist = daisy(x.train.1, metric ="gower")
-hier.mod = hclust(gower.dist, method="mcquitty")
+hier.mod = hclust(gower.dist, method=method)
 fviz_dend(hier.mod, k = n.groups, 
           k_colors = c("#00AFBB","#FC4E07"),
           label_cols =  km.clust[hier.mod$order], cex = 0.6)
 
 
 
-# do hierarchical classification using the average link
+# do hierarchical classification using the ward.D2 link
 # patients order
-method="average"
 gower.dist.pat.1 = daisy(x.train.1, metric ="gower")
 hier.mod.pat.1 = hclust(gower.dist.pat.1, method=method)
 patients.order = hier.mod.pat.1$order
 
 # draw the dendrogram.
-fviz_dend(hier.mod, k=n.groups, cex=0.5, 
-          k_colors = colors,
+fviz_dend(hier.mod.pat.1, k=n.groups, cex=0.5, 
+          #k_colors = colors,
           label_cols = label.colors,
           #horiz = T,
           ggtheme=theme_minimal(),
-          main=method)
+          main=paste(method, " - true coloring"))
 
 # dend.pat.1 = as.dendrogram(hier.mod.pat.1)
 # par(mar = rep(0,4))

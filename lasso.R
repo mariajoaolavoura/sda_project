@@ -95,7 +95,7 @@ lasso.mod.2 = glmnet(lasso.x.train.2, as.numeric(as.character(lasso.y.train.1)),
 ###
 ## train test error
 lasso.tt.res = data.frame(0,0,0)
-names(lasso.tt.res) = c("method", "train.error", "test.error")
+names(lasso.tt.res) = c("method", "train.accuracy", "test.accuracy")
 
 
 # prediction using the best lambda
@@ -184,7 +184,7 @@ lasso.tt.res[nrow(lasso.tt.res)+1,] = get.lasso.train.test.error(lasso.mod.4,
 
 lasso.tt.res
 
-# method train.error test.error
+# method train.accuracy test.accuracy
 # 1           with outliers - complete model   0.6460245  0.6515987
 # 2    with outliers - EDA feature selection   0.6452512  0.6516945
 # 3        without outliers - complete model   0.6499600  0.6440236

@@ -67,7 +67,7 @@ qda.mod.2= qda(cardio ~ age  +
 
 ### train test error
 qda.tt.res = data.frame(0,0,0)
-names(qda.tt.res) = c("method", "train.error", "test.error")
+names(qda.tt.res) = c("method", "train.accuracy", "test.accuracy")
 
 qda.tt.res[1,] = get.qda.train.test.error( qda.mod.1,
                                            tts$train[,-12], tts$test[,-12],
@@ -123,7 +123,7 @@ qda.tt.res[nrow(qda.tt.res)+1,] = get.qda.train.test.error(qda.mod.4,
 
 
 qda.tt.res
-# method train.error test.error
+# method train.accuracy test.accuracy
 # 1           with outliers - complete model   0.5891654  0.5920138
 # 2    with outliers - EDA feature selection   0.5879851  0.5910071
 # 3        without outliers - complete model   0.5956583  0.5911682

@@ -69,7 +69,7 @@ logr.mod.2= glm(cardio ~ age  +
 
 ## train test error
 logr.tt.res = data.frame(0,0,0)
-names(logr.tt.res) = c("method", "train.error", "test.error")
+names(logr.tt.res) = c("method", "train.accuracy", "test.accuracy")
 
 logr.tt.res[1,] = get.logr.train.test.error(logr.mod.1,
                                             tts$train[,-12], tts$test[,-12],
@@ -123,7 +123,7 @@ logr.tt.res[nrow(logr.tt.res)+1,] = get.logr.train.test.error(logr.mod.4,
 
 
 logr.tt.res
-# method train.error test.error
+# method train.accuracy test.accuracy
 # 1           with outliers - complete model   0.6885570  0.6929198
 # 2    with outliers - EDA feature selection   0.6878854  0.6922966
 # 3        without outliers - complete model   0.6905479  0.6839308

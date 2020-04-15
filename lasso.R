@@ -1,9 +1,9 @@
 # Lasso Regression
 
 ## libraries
-library(scorecard) # split_df
+require(scorecard) # split_df
 require(FSA) #headtail
-library (glmnet) #lasso
+require (glmnet) #lasso
 require(caret) #confusion matrix
 
 ## seed

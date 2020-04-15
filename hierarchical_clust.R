@@ -1,4 +1,4 @@
-# Hierarchical classification
+# Hierarchical clustering
 
 ## libraries
 require(scorecard) # split_df

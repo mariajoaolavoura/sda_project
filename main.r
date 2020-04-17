@@ -720,6 +720,7 @@ model.linear= model.linear.2
 
 
 ## cook's distance
+par(mfrow= c(1, 1), oma= c(0, 2, 3, 1))
 plot(hatvalues(model.linear),
      xlab= '', ylab= '', yaxt= 'n',
      main= "Cook's distance")
@@ -749,7 +750,7 @@ y.test=  as.numeric(as.character(tts$y_test))
 
 
 # train model
-model.linear= lm(y.train ~ age+gender+weight+aphi+aplo+
+model.linear= lm(y.train ~ age+weight+aphi+aplo+
                      `choles=1`+`choles=2`+`gluc=1`+`gluc=2`+
                      `smoke=0`+`alco=0`+`active=0`,
                    data= x.train)
@@ -773,4 +774,4 @@ cm.linear.test= as.matrix(table(actual= y.test,
                          )
 accu.linear.test= sum(diag(cm.linear.test)) / length(y.test)
 accu.linear.test
-# Accuracy on the test set: 0.724
+# Accuracy on the test set: 0.726

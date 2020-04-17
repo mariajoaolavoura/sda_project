@@ -9,6 +9,7 @@ require(e1071)
 require(fastDummies)
 require(FSA)
 require(plotrix)
+require(ggplot2)
 
 ## seed
 set.seed(123)
@@ -25,6 +26,15 @@ summary(cardio.data)
 # convert age to years
 cardio.data['age']= cardio.data['age']/365.2422
 headtail(cardio.data)
+
+
+## correlations
+ggcorr(
+  original.data,
+  name= "Correlation",
+  label= T) +
+  ggtitle("Correlation matrix")
+
 
 ## extract variables
 age=     cardio.data$age

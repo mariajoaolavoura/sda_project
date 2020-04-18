@@ -637,55 +637,91 @@ data.tib= as_tibble(data.set[idx, ])
 write.csv(data.set, "./data/cardio-clean.csv", row.names= F)
 
 
-## read clean data
-data.set= read.csv("./data/cardio-clean.csv")
-colNames.qual= c('choles', 'gluc', 'smoke',
-                 'alco', 'active', 'cardio')
-data.set[, colNames.qual]= lapply(data.set[, colNames.qual], factor)
-data.tib= as_tibble(data.set)
-data.tib
+## read clean data set
+data.clean= read.csv("./data/cardio-clean.csv")
+
+
+## train/test split
+tts= train_test_split(data.clean, "cardio", 0.7, seed= SEED)
+x.train= tts$X_train
+y.train= as.numeric(as.character(tts$y_train))
+x.test=  tts$X_test
+y.test=  as.numeric(as.character(tts$y_test))
+#tts= train_test_split(data.dmy, "cardio", 0.7, seed= SEED)
+#x.train= tts$X_train
+#y.train= as.numeric(as.character(tts$y_train))
+#x.test=  tts$X_test
+#y.test=  as.numeric(as.character(tts$y_test))
+
+
+## use x.train for model fitting
+train.set= x.train
+colNames.qual= c('choles', 'gluc', 'smoke', 'alco', 'active')
+train.set[, colNames.qual]= lapply(train.set[, colNames.qual], factor)
+train.tib= as_tibble(train.set)
+train.tib
+
+
+## prepare x.test for one hot encoding
+test.set= x.test
+test.set[, colNames.qual]= lapply(test.set[, colNames.qual], factor)
+test.tib= as_tibble(test.set)
+test.tib
+
 
 ## correlations
 ggcorr(
-  data.set,
+  train.set,
   name= "Correlation",
   label= T
   ) +
   labs(title= "Correlation matrix") +
   theme(plot.title= element_text(face= "bold", hjust= 0.5))
 
-cor(data.set[, c(1, 3, 4, 5, 6)])
-idx.pairs= sample(base.seq, 10000)
-ggpairs(data.set[idx.pairs, c(1, 3, 4, 5, 6)])
+cor(train.set[, c(1, 3, 4, 5, 6)])
+train.seq= 1:nrow(train.set)
+set.seed(SEED)
+idx.pairs= sample(train.seq, 10000)
+ggpairs(train.set[idx.pairs, c(1, 3, 4, 5, 6)])
 
 
-## one hot encoding
-cardio= data.set$cardio
-gender= data.set$gender
-data.set['gender']= ifelse(data.set['gender'] == 'woman', 0, 1)
-encoder= onehot(data.set[, -12])
-data.dmy= as.data.frame(predict(encoder, data.set[, -12]))
-data.dmy$cardio= cardio
-head(data.dmy)
-data.tib.enc= as_tibble(data.dmy)
-data.tib.enc
+## one hot encoding on train set
+gender= train.set$gender
+train.set['gender']= ifelse(train.set['gender'] == 'woman', 0, 1)
+encoder.train= onehot(train.set)
+train.dmy= as.data.frame(predict(encoder.train, train.set))
+train.dmy$cardio= y.train
+head(train.dmy)
+train.tib.enc= as_tibble(train.dmy)
+train.tib.enc
+
+
+## one hot encoding on test set
+gender= test.set$gender
+test.set['gender']= ifelse(test.set['gender'] == 'woman', 0, 1)
+encoder.test= onehot(test.set)
+test.dmy= as.data.frame(predict(encoder.test, test.set))
+test.dmy$cardio= y.test
+head(test.dmy)
+test.tib.enc= as_tibble(test.dmy)
+test.tib.enc
 
 
 ## linear regression
-cardio.num= as.numeric(as.character(cardio))
+cardio.num= as.numeric(as.character(y.train))
 ### null model
-model.null= lm(cardio.num ~ 1, data= data.dmy)
+model.null= lm(cardio.num ~ 1, data= train.dmy)
 model.null
 anova(model.null)
-# intercept: 0.4939 ==> mean = 0.4939 ==> 49.39% of pacients have CVD
-# TSS = 15624
-# MSE = 0.24997
+# intercept: 0.4923 ==> mean = 0.4923 ==> 49.23% of pacients have CVD
+# TSS = 10936
+# MSE = 0.24995
 
 ### full model
-model.linear.full= lm(cardio.num ~ ., data= data.dmy[, -ncol(data.dmy)])
+model.linear.full= lm(cardio.num ~ ., data= train.dmy[, -ncol(train.dmy)])
 model.linear.full
 anova(model.linear.full)
-# TSS = 12008
+# TSS = 8406
 # MSE = 0.19
 # non-significant variables: gender, height
 
@@ -693,7 +729,7 @@ anova(model.linear.full)
 model.linear.1= lm(cardio.num ~ age+height+weight+aphi+aplo+
                      `choles=1`+`choles=2`+`gluc=1`+`gluc=2`+
                      `smoke=0`+`alco=0`+`active=0`,
-                   data= data.dmy)
+                   data= train.dmy)
 model.linear.1
 anova(model.linear.1)
 # Height is not significant.
@@ -702,7 +738,7 @@ anova(model.linear.1)
 model.linear.2= lm(cardio.num ~ age+weight+aphi+aplo+
                      `choles=1`+`choles=2`+`gluc=1`+`gluc=2`+
                      `smoke=0`+`alco=0`+`active=0`,
-                   data= data.dmy)
+                   data= train.dmy)
 model.linear.2
 anova(model.linear.2)
 # All variables are significant.
@@ -711,10 +747,31 @@ anova(model.linear.2)
 model.linear.3= lm(cardio.num ~ age+gender+weight+aphi+aplo+
                      `choles=1`+`choles=2`+`gluc=1`+`gluc=2`+
                      `smoke=0`+`alco=0`+`active=0`,
-                   data= data.dmy)
+                   data= train.dmy)
 model.linear.3
 anova(model.linear.3)
 # Gender is not significant.
+# Since 'aphi' and 'aplo' are highly correlated, we will try to remove
+# one of them at a time.
+
+## remove aphi
+model.linear.4= lm(cardio.num ~ age+weight+aplo+
+                     `choles=1`+`choles=2`+`gluc=1`+`gluc=2`+
+                     `smoke=0`+`alco=0`+`active=0`,
+                   data= train.dmy)
+model.linear.4
+anova(model.linear.4)
+# The TTS and MSE are worse than in model.linear.2.
+
+
+## remove aplo
+model.linear.5= lm(cardio.num ~ age+weight+aphi+
+                     `choles=1`+`choles=2`+`gluc=1`+`gluc=2`+
+                     `smoke=0`+`alco=0`+`active=0`,
+                   data= train.dmy)
+model.linear.5
+anova(model.linear.5)
+# TTS is slightly worse than in model.linear.2.
 # So, model.linear.2 is the one with all significant variables.
 model.linear= model.linear.2
 
@@ -737,26 +794,18 @@ hist(rstandard(model.linear),
 boxplot(rstandard(model.linear), yaxt= 'n',
         main= "Boxplot of the residuals"); axis(2, las= 2)
 qqnorm(rstandard(model.linear), yaxt= 'n'); axis(2, las= 2)
-qqline(rstandard(model.linear))
+qqline(rstandard(model.linear), col= 'red', lwd= 1.8)
 # The residuals are not normally distributed.
 
 
-## train/test split
-tts= train_test_split(data.dmy, "cardio", 0.7, seed= SEED)
-x.train= tts$X_train
-y.train= as.numeric(as.character(tts$y_train))
-x.test=  tts$X_test
-y.test=  as.numeric(as.character(tts$y_test))
-
-
 # train model
-model.linear= lm(y.train ~ age+weight+aphi+aplo+
+model.linear= lm(cardio.num ~ age+weight+aphi+aplo+
                      `choles=1`+`choles=2`+`gluc=1`+`gluc=2`+
                      `smoke=0`+`alco=0`+`active=0`,
-                   data= x.train)
+                   data= train.dmy)
 
 ## train accuracy
-pred.linear.train= predict(model.linear, x.train)
+pred.linear.train= predict(model.linear, train.dmy)
 pred.linear.train= ifelse(pred.linear.train > 0.5, 1, 0)
 cm.linear.train= as.matrix(table(actual= y.train,
                                  predicted= pred.linear.train)
@@ -767,7 +816,7 @@ accu.linear.train
 
 
 ## test accuracy
-pred.linear.test= predict(model.linear, x.test)
+pred.linear.test= predict(model.linear, test.dmy)
 pred.linear.test= ifelse(pred.linear.test > 0.5, 1, 0)
 cm.linear.test= as.matrix(table(actual= y.test,
                                 predicted= pred.linear.test)

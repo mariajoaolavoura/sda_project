@@ -131,5 +131,3 @@ logr.tt.res
 # 2          remove gender      0.7047107     0.7025663
 # 3          remove height      0.7042777     0.7024052
 # 4 remove gender + height      0.7044828     0.7018684
-
-

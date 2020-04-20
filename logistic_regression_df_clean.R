@@ -58,45 +58,36 @@ logr.mod.1 = glm(cardio ~., data=tts$train, family = "binomial")
 
 ### remove gender
 logr.mod.2 = glm(cardio ~. -gender, data=tts$train, family = "binomial")
-# logr.mod.2= lm(cardio ~age  +
-#                  height +
-#                  weight +
-#                  aphi +
-#                  aplo +
-#                  `active=0` + `active=1` +
-#                  `choles=1` + `choles=2` + `choles=3` +
-#                  `gluc=1` + `gluc=2` + `gluc=3` +
-#                  `smoke=0`, 
-#                data = tts$train, family = "binomial")
 
 ### remove height
 logr.mod.3 = glm(cardio ~. -height, data=tts$train, family = "binomial")
-# logr.mod.3= lm(cardio ~age  +
-#                  gender+
-#                  weight +
-#                  aphi +
-#                  aplo +
-#                  `active=0` + `active=1` +
-#                  `choles=1` + `choles=2` + `choles=3` +
-#                  `gluc=1` + `gluc=2` + `gluc=3` +
-#                  `smoke=0`, 
-#                data = tts$train, family = "binomial")
-
-
 
 ### remove gender + height
 logr.mod.4 = glm(cardio ~. -gender-height, data=tts$train, family = "binomial")
-# logr.mod.4= lm(cardio ~age  +
-#                  weight +
-#                  aphi +
-#                  aplo +
-#                  `active=0` + `active=1` +
-#                  `choles=1` + `choles=2` + `choles=3` +
-#                  `gluc=1` + `gluc=2` + `gluc=3` +
-#                  `smoke=0`, 
-#                data = tts$train, family = "binomial")
 
+### remove aphi
+logr.mod.5 = glm(cardio ~. -aphi, data=tts$train, family = "binomial")
 
+### remove aplo
+logr.mod.6 = glm(cardio ~. -aplo, data=tts$train, family = "binomial")
+
+### remove gender + aphi
+logr.mod.7 = glm(cardio ~. -gender-aphi, data=tts$train, family = "binomial")
+
+### remove gender + aplo
+logr.mod.8 = glm(cardio ~. -gender-aplo, data=tts$train, family = "binomial")
+
+### remove height + aphi
+logr.mod.9 = glm(cardio ~. -height-aphi, data=tts$train, family = "binomial")
+
+### remove height + aplo
+logr.mod.10 = glm(cardio ~. -height-aplo, data=tts$train, family = "binomial")
+
+### remove gender + height + aphi
+logr.mod.11 = glm(cardio ~. -gender-height-aphi, data=tts$train, family = "binomial")
+
+### remove gender + height + aplo
+logr.mod.12 = glm(cardio ~. -gender-height-aplo, data=tts$train, family = "binomial")
 
 
 ## train test error
@@ -124,10 +115,59 @@ logr.tt.res[nrow(logr.tt.res)+1,] = get.logr.train.test.error(logr.mod.4,
                                                               tts$train$cardio,  tts$test$cardio,
                                                               'remove gender + height')
 
+logr.tt.res[nrow(logr.tt.res)+1,] = get.logr.train.test.error(logr.mod.5,
+                                                              tts$train[,-19], tts$test[,-19],
+                                                              tts$train$cardio,  tts$test$cardio,
+                                                              'remove aphi')
+
+logr.tt.res[nrow(logr.tt.res)+1,] = get.logr.train.test.error(logr.mod.6,
+                                                              tts$train[,-19], tts$test[,-19],
+                                                              tts$train$cardio,  tts$test$cardio,
+                                                              'remove aplo')
+
+logr.tt.res[nrow(logr.tt.res)+1,] = get.logr.train.test.error(logr.mod.7,
+                                                              tts$train[,-19], tts$test[,-19],
+                                                              tts$train$cardio,  tts$test$cardio,
+                                                              'remove gender + aphi')
+
+logr.tt.res[nrow(logr.tt.res)+1,] = get.logr.train.test.error(logr.mod.8,
+                                                              tts$train[,-19], tts$test[,-19],
+                                                              tts$train$cardio,  tts$test$cardio,
+                                                              'remove gender + aplo')
+
+logr.tt.res[nrow(logr.tt.res)+1,] = get.logr.train.test.error(logr.mod.9,
+                                                              tts$train[,-19], tts$test[,-19],
+                                                              tts$train$cardio,  tts$test$cardio,
+                                                              'remove height + aphi')
+
+logr.tt.res[nrow(logr.tt.res)+1,] = get.logr.train.test.error(logr.mod.10,
+                                                              tts$train[,-19], tts$test[,-19],
+                                                              tts$train$cardio,  tts$test$cardio,
+                                                              'remove height + aplo')
+
+logr.tt.res[nrow(logr.tt.res)+1,] = get.logr.train.test.error(logr.mod.11,
+                                                              tts$train[,-19], tts$test[,-19],
+                                                              tts$train$cardio,  tts$test$cardio,
+                                                              'remove gender + height + aphi')
+
+logr.tt.res[nrow(logr.tt.res)+1,] = get.logr.train.test.error(logr.mod.12,
+                                                              tts$train[,-19], tts$test[,-19],
+                                                              tts$train$cardio,  tts$test$cardio,
+                                                              'remove gender + height + aplo')
+
 
 logr.tt.res
-#                   method train.accuracy test.accuracy
-# 1         complete model      0.7046423     0.7026200
-# 2          remove gender      0.7047107     0.7025663
-# 3          remove height      0.7042777     0.7024052
-# 4 remove gender + height      0.7044828     0.7018684
+#                           method train.accuracy test.accuracy
+# 1                 complete model      0.7046423     0.7026200
+# 2                  remove gender      0.7047107     0.7025663
+# 3                  remove height      0.7042777     0.7024052
+# 4         remove gender + height      0.7044828     0.7018684
+# 5                    remove aphi      0.6634153     0.6595082
+# 6                    remove aplo      0.7032065     0.7013852
+# 7           remove gender + aphi      0.6633925     0.6595619
+# 8           remove gender + aplo      0.7034572     0.7014925
+# 9           remove height + aphi      0.6635748     0.6589713
+# 10          remove height + aplo      0.7030926     0.7009557
+# 11 remove gender + height + aphi      0.6637344     0.6583271
+# 12 remove gender + height + aplo      0.7035028     0.7012241
+

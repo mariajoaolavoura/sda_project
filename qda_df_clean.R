@@ -19,7 +19,8 @@ split.ratio = c(0.7, 0.3)
 accFromCm = function(pred, true) { confusionMatrix(pred, true)$overall[1] }
 
 factorize.features = function(dataset){
-  colNames.qual= c('choles', 'gluc', 'smoke',
+  data.set['gender']= ifelse(data.set['gender'] == 'woman', 0, 1)
+  colNames.qual= c('gender', 'choles', 'gluc', 'smoke',
                    'alco', 'active', 'cardio')
   dataset[, colNames.qual]= lapply(dataset[, colNames.qual], factor)
   
@@ -40,7 +41,8 @@ headtail(data.set)
 ## factorization
 data.set = factorize.features(data.set)
 
-## one hot encoding
+
+##one hot encoding
 # cardio= data.set$cardio
 # gender= data.set$gender
 # data.set['gender']= ifelse(data.set['gender'] == 'woman', 0, 1)

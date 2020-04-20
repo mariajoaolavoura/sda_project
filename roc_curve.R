@@ -20,17 +20,14 @@ set.seed(seed)
 split.ratio = c(0.7, 0.3)
 
 ## colors
-cols= c("firebrick2", "olivedrab4", "lightseagreen", "slateblue1", "mediumorchid1")
+cols= c("firebrick2", "olivedrab4", "darkolivegreen", "lightseagreen", "slateblue1", "mediumorchid1")
 
 ## functions
-factorizefeatures = function(dataset){
-  dataset$gender = as.factor(dataset$gender)
-  dataset$choles  = as.factor(dataset$choles)
-  dataset$glucose = as.factor(dataset$glucose)
-  dataset$smoke = as.factor(dataset$smoke)
-  dataset$alcohol = as.factor(dataset$alcohol)
-  dataset$active  = as.factor(dataset$active)
-  dataset$cardio = as.factor(dataset$cardio)
+factorize.features = function(dataset){
+  dataset$gender= ifelse(dataset['gender'] == 'woman', 0, 1)
+  colNames.qual= c('gender', 'choles', 'gluc', 'smoke',
+                   'alco', 'active', 'cardio')
+  dataset[, colNames.qual]= lapply(dataset[, colNames.qual], factor)
   
   return(dataset)
 }
@@ -44,50 +41,78 @@ reduce.data.set = function(dataset, leng, seed){
   return(dataset)
 }
 
+unfactorize.features = function(dataset){
+  dataset = as_tibble(dataset)
+  
+  colNames.qual= c('gender', 'choles', 'gluc', 'smoke',
+                   'alco', 'active', 'cardio')
+  
+  dataset[, colNames.qual]= lapply(dataset[, colNames.qual], as.character)
+  dataset[, colNames.qual]= lapply(dataset[, colNames.qual], as.numeric)
+  
+  return(dataset)
+}
+
+standardize.data.set = function(dataset){
+  # cannot have factorized data, must be numeric
+  dataset = unfactorize.features(dataset)
+  
+  # standardization
+  dataset = scale(dataset)
+  
+  return(dataset) # return(data.frame(dataset))
+}
+
+#################################################
 ## read data set
-data.set= read.csv("./data/cardio_data.csv")
+data.set= read.csv("./data/cardio-clean.csv")
 headtail(data.set)
 
 ## factorization
-data.set = factorizefeatures(data.set)
+data.set = factorize.features(data.set)
+
+## one hot encoding
+encoder= onehot(data.set[, -12])
+data.dmy= as.data.frame(predict(encoder, data.set[, -12]))
+data.dmy$cardio= data.set$cardio
+head(data.dmy)
 
 ## split data
 tts = split_df(data.set, ratio=split.ratio, seed=seed)
+tts.dmy = split_df(data.dmy, ratio=split.ratio, seed=seed)
 
 
-## models
+## complete models
 #LogR
-logr.mod = glm(cardio ~., data=tts$train, family = "binomial")
-logr.pred= predict(logr.mod, tts$test)
-#logr.pred = as.factor(ifelse(logr.pred > 0.50, 1, 0))
+logr.mod = glm(cardio ~., data=tts.dmy$train, family = "binomial")
+logr.pred= predict(logr.mod, tts.dmy$test)
 
 #LDA
 lda.mod = lda(cardio ~ ., data= tts$train)
 lda.pred = predict(lda.mod, newdata= tts$test)$posterior
 
 #QDA
+# if encoded, gives error
 qda.mod = qda(cardio ~ ., data= tts$train)
 qda.pred = predict(qda.mod, newdata= tts$test)$posterior
 
 # matrixes
-x.train = model.matrix(cardio~., tts$train)[,-1]
-x.test = model.matrix(cardio~., tts$test)[,-1]
-y.train = as.numeric(as.character(tts$train$cardio))
-y.test = as.numeric(as.character(tts$test$cardio))
+x.train = model.matrix(cardio~., tts.dmy$train)[,-1]
+x.test = model.matrix(cardio~., tts.dmy$test)[,-1]
+y.train = as.numeric(as.character(tts.dmy$train$cardio))
+y.test = as.numeric(as.character(tts.dmy$test$cardio))
 
 #Lasso
 lasso.cv = cv.glmnet(x.train, y.train, alpha=1)
 lasso.best.lambda = lasso.cv$lambda.min
 lasso.mod = glmnet(x.train, y.train, alpha=1)
 lasso.pred = predict(lasso.mod, s=lasso.best.lambda, newx=x.test)
-#lasso.pred = as.factor(ifelse(lasso.pred > 0.50, 1, 0))
 
 #Ridge
 ridge.cv = cv.glmnet(x.train, y.train, alpha=0)
 ridge.best.lambda = ridge.cv$lambda.min
 ridge.mod = glmnet(x.train, y.train, alpha=0)
 ridge.pred = predict(ridge.mod, s=ridge.best.lambda, newx=x.test)
-#ridge.pred = as.factor(ifelse(ridge.pred > 0.50, 1, 0))
 
 
 # #KMeans
@@ -97,15 +122,24 @@ ridge.pred = predict(ridge.mod, s=ridge.best.lambda, newx=x.test)
 
 # #Hierarchical Clust
 ## dimension reduction
-ds = reduce.data.set(data.set, 35000, seed)
+ds = reduce.data.set(data.set, 5000, seed)
 ## split data
 tts2 = split_df(ds, ratio=split.ratio, seed=seed)
 
 gower.dist = daisy(tts2$train[,-12], metric ="gower")
-hc.mod = hclust(gower.dist, method="ward.D2")
-groups = cutree(hc.mod, k=2)-1
-hc.pred = knn(train=tts2$train[,-12], test=tts2$test[,-12], cl=groups, k=1, prob= T)
-hc.pred = attributes(hc.pred)$prob
+hc.gower.mod = hclust(gower.dist, method="ward.D2")
+gower.groups = cutree(hc.gower.mod, k=2)-1
+hc.gower.pred = knn(train=tts2$train[,-12], test=tts2$test[,-12], cl=gower.groups, k=1, prob= T)
+hc.gower.pred = attributes(hc.gower.pred)$prob
+
+
+std.train = standardize.data.set(tts2$train)
+std.test = standardize.data.set(tts2$test)
+eucl.dist = daisy(std.train[,-12], metric ="euclidean")
+hc.eucl.mod = hclust(eucl.dist, method="ward.D2")
+eucl.groups = cutree(hc.eucl.mod, k=2)-1
+hc.eucl.pred = knn(train=std.train[,-12], test=std.test[,-12], cl=eucl.groups, k=1, prob= T)
+hc.eucl.pred = attributes(hc.eucl.pred)$prob
 
 
 
@@ -117,7 +151,8 @@ qda.roc=  roc(y.test, qda.pred[, 2], quiet=T)
 lasso.roc= roc(y.test, lasso.pred, quiet=T)
 ridge.roc= roc(y.test, ridge.pred, quiet=T)
 #kmeans.roc= roc(y.test, kmens.pred, quiet=T)
-hc.roc = roc(as.numeric(tts2$test$cardio), hc.pred, quiet=T)
+hc.gower.roc = roc(as.numeric(tts2$test$cardio), hc.gower.pred, quiet=T)
+hc.eucl.roc = roc(as.numeric(std.test[,12]), hc.eucl.pred, quiet=T)
 
 roc.mods= list(
   LogR  = logr.roc,
@@ -126,10 +161,13 @@ roc.mods= list(
   Lasso = lasso.roc,
   Ridge = ridge.roc,
   #KMeans = kmeans.roc,
-  HC    = hc.roc
+  HC.gower= hc.gower.roc,
+  HC.eucl = hc.eucl.roc
 )
-# LDA == Lasso == Ridge
-# LogR != LDA != QDA != HC
+
+# LogR == LDA == Lasso == Ridge
+# LogR != QDA != HC
+# gower == euclidean
 
 
 # # AUCs

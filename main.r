@@ -1,8 +1,9 @@
 ###
 ## Statistics and Data Analysis project 1
 ## Prediction of cardiovascular disease from 11 predictors
-## (five numerical and six categorical) recorded in 70000 medical exams
-## By Maria João Lavoura (up) and Nuno Gomes (up199300242)
+## (five quantitative and six qualitative) recorded in 70000 medical exams
+##
+## By Maria João Lavoura (up201908426) and Nuno Gomes (up199300242)
 ## Masters of Data Science, 2019/2020
 ###
 
@@ -647,11 +648,6 @@ x.train= tts$X_train
 y.train= as.numeric(as.character(tts$y_train))
 x.test=  tts$X_test
 y.test=  as.numeric(as.character(tts$y_test))
-#tts= train_test_split(data.dmy, "cardio", 0.7, seed= SEED)
-#x.train= tts$X_train
-#y.train= as.numeric(as.character(tts$y_train))
-#x.test=  tts$X_test
-#y.test=  as.numeric(as.character(tts$y_test))
 
 
 ## use x.train for model fitting
@@ -670,6 +666,17 @@ test.tib
 
 
 ## correlations
+data.clean['gender']= ifelse(data.clean['gender'] == 'woman', 0, 1)
+colNames.qual= c('gender', 'choles', 'gluc', 'smoke', 'alco', 'active')
+data.clean[, colNames.qual]= lapply(data.clean[, colNames.qual], factor)
+### all variables
+ggcorr(
+  data.clean,
+  name= "Correlation",
+  label= T) +
+  labs(title= "Correlation matrix (all variables)") +
+  theme(plot.title= element_text(face= "bold", hjust= 0.5))
+### quantitative variables
 ggcorr(
   train.set,
   name= "Correlation",
@@ -679,6 +686,10 @@ ggcorr(
   theme(plot.title= element_text(face= "bold", hjust= 0.5))
 
 cor(train.set[, c(1, 3, 4, 5, 6)])
+## quantitative variables
+ggpairs(data.clean[, c(1, 3, 4, 5, 6, 12)])
+## qualitative variables
+ggpairs(data.clean[, c(2, 7, 8, 9, 10, 11, 12)])
 train.seq= 1:nrow(train.set)
 set.seed(SEED)
 idx.pairs= sample(train.seq, 10000)

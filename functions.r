@@ -1,5 +1,10 @@
 ###
+## Statistics and Data Analysis project 1
 ## Auxiliary functions for 'main.r'
+##
+## List of functions:
+##  - lda.plot
+##  - train_test_split
 ###
 
 #' Function \code{lda.plot}

@@ -1,99 +1,111 @@
 ###
+## Statistics and Data Analysis project 1
 ## Ridge Regression
 ###
 
 ## libraries
-require(glmnet)
 require(FSA)
+require(ggplot2)
+require(glmnet)
 
 ## seed
-set.seed(123)
+SEED= 123
+set.seed(SEED)
 
-## functions
 
-#' Function \code{train_test_split}
-#'
-#' Split data set into train and test sets
-#' @author Nuno R. C. Gomes <nunorcgomes@@gmail.com> (2020/03/18)
-#' @param dataset A data set
-#' @param target Target variable (name or index)
-#' @param frac Proportion of data set for training
-#' @param seed A seed for the sampling; Default: 42
-#' @return Vector \code{tts} of mode "list"
-#' @examples
-#' train_test_split(pid, "diabetes", 0.8)
-train_test_split= function(dataset, target, frac, seed= 42) {
-  set.seed(seed)
-  nr= nrow(dataset)
-  seqnr= 1:nr
-  # target variable and index
-  if (typeof(target) == "character") {
-    target.idx= which(colnames(dataset) == target)
-  } else if (typeof(target) == "double") {
-    target.idx= target
-    target= colnames(dataset[target.idx])
-  } else {
-    stop("Invalid `target` argument.")
-  }
+## load auxiliary functions
+source('functions.r')
   
-  # train and test sets
-  train.idx= sample(seqnr, frac*nr)
-  test.idx=  setdiff(seqnr, train.idx)
-  X.train=   data.set[train.idx, -target.idx]
-  y.train=   data.set[train.idx,  target.idx]
-  X.test=    data.set[test.idx,  -target.idx]
-  y.test=    data.set[test.idx,   target.idx]
-  
-  # list of data frames
-  tts= vector('list', 4)
-  names(tts)= c('X_train', 'y_train', 'X_test', 'y_test')
-  tts[[1]]= X.train
-  tts[[2]]= y.train
-  tts[[3]]= X.test
-  tts[[4]]= y.test
-  
-  return(tts)
-}
 
-## read data
-data.set= read.csv("./data/cardio_data.csv")
-headtail(data.set)
+## read clean data set
+data.clean= read.csv("./data/cardio-clean.csv")
+headtail(data.clean)
+data.clean['gender']= ifelse(data.clean['gender'] == 'woman', 0, 1)
+data.tib= as_tibble(data.clean)
+data.tib
 
-## list of categorical/binary variables
-## gender, choles, glucose, smoke, alcohol, active, cardio
-
-## factorise categorical/binary variables
-colNames.cat= c('gender', 'choles', 'glucose', 'smoke',
-                'alcohol', 'active', 'cardio')
-data.set[, colNames.cat]= lapply(data.set[, colNames.cat], factor)
 
 ## train/test split
-tts= train_test_split(data.set, "cardio", 0.7, seed= 123)
+tts= train_test_split(data.clean, "cardio", 0.7, seed= SEED)
 x.train= tts$X_train
-y.train= tts$y_train
+y.train= as.numeric(as.character(tts$y_train))
 x.test=  tts$X_test
-y.test=  tts$y_test
+y.test=  as.numeric(as.character(tts$y_test))
 
-ridge.train= model.matrix(y.train ~ ., data= x.train)[, -1] # remove intercept
-ridge.test=  model.matrix(y.test ~ ., data= x.test)[, -1]
+
+## use x.train for model fitting
+### train.set: dataframe, categorical variables as integers
+### train.tib: tibble, categorical variables as factors
+train.set= x.train
+train.tib= as_tibble(train.set)
+colNames.qual= c('choles', 'gluc', 'smoke', 'alco', 'active')
+train.tib[, colNames.qual]= lapply(train.tib[, colNames.qual], factor)
+train.tib
+
+
+## prepare x.test for one hot encoding
+### test.set: dataframe, categorical variables as integers
+### test.tib: tibble, categorical variables as factors
+test.set= x.test
+test.tib= as_tibble(test.set)
+test.tib[, colNames.qual]= lapply(test.tib[, colNames.qual], factor)
+test.tib
+
 
 ## convert target sets from integer to double (for glmnet)
 y.train= as.numeric(as.character(y.train))
-y.test=  as.numeric(as.character(y.train))
+y.test=  as.numeric(as.character(y.test))
 
-## optimal values for lambda (10-fold cross-validation)
+
+## ridge model (train.set as is)
+ridge.train.asis= model.matrix(y.train ~ ., data= train.set)[, -1] # remove intercept
+ridge.test.asis=  model.matrix(y.test ~ ., data= test.set)[, -1]
+
+### optimal values for lambda (10-fold cross-validation)
 #alpha0.fit= cv.glmnet(ridge.train, y.train,
 #                      type.measure= "deviance", alpha= 0, family= "binomial")
-alpha0.fit= cv.glmnet(ridge.train, y.train, alpha= 0)
-lambda= alpha0.fit$lambda.min
+alpha0.fit.asis= cv.glmnet(ridge.train.asis, y.train, alpha= 0)
+lambda.asis= alpha0.fit.asis$lambda.min
 
-## predict values on test set
+### predict values on train set
+alpha0.predict.asis.train= predict(alpha0.fit.asis,
+                                   s= lambda.asis,
+                                   newx= ridge.train.asis)
+ridge.vals.asis.train= as.factor(
+  ifelse(alpha0.predict.asis.train[, 1] > 0.5, 1, 0)
+  )
+#### accuracy
+cm.ridge.asis.train= as.matrix(
+  table(actual= y.train,
+        predicted= ridge.vals.asis.train)
+)
+accu.ridge.train.asis= sum(diag(cm.ridge.asis.train)) / length(y.train)
+accu.ridge.train.asis
+# Accuracy on the train set: 0.721
+
+### predict values on test set
 #alpha0.predict= predict(alpha0.fit, s= alpha0.fit$lambda.1se, newx= ridge.test)
 # alpha0.predict gives values in ]-2.01, 90.4[
 # Maybe these are log(odds)
 # TODO: convert predictions to factor/binary (0 or 1)
+alpha0.predict.asis.test= predict(alpha0.fit.asis,
+                                  s= lambda.asis,
+                                  newx= ridge.test.asis)
+ridge.vals.asis.test= as.factor(
+  ifelse(alpha0.predict.asis.test[, 1] > 0.5, 1, 0)
+)
+#### accuracy
+cm.ridge.asis.test= as.matrix(
+  table(actual= y.test,
+        predicted= ridge.vals.asis.test)
+)
+accu.ridge.test.asis= sum(diag(cm.ridge.asis.test)) / length(y.test)
+accu.ridge.test.asis
+# Accuracy on the train set: 0.723
 
-alpha0.predict= predict(alpha01.fit, s= lambda, newx= ridge.test)
-ridge.vals= as.factor(ifelse(alpha0.predict[, 1] > 0.5, 1, 0))
-## errors
-# TODO: estimate accuracy or error of model
+
+## plots
+lda.plot(test.set, ridge.vals.asis.test, "age", "weight")
+lda.plot(test.set, ridge.vals.asis.test, "age", "height")
+lda.plot(test.set, ridge.vals.asis.test, "aplo", "aphi")
+lda.plot(test.set, ridge.vals.asis.test, "weight", "height")

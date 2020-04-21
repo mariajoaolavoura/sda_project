@@ -83,6 +83,29 @@ accu.ridge.train.asis= sum(diag(cm.ridge.asis.train)) / length(y.train)
 accu.ridge.train.asis
 # Accuracy on the train set: 0.721
 
+#### accuracy removing gender and height
+ridge.train.asis.small= model.matrix(y.train ~ .,
+                                     data= train.set[, -c(2, 3)])[, -1] # remove intercept
+ridge.test.asis.small=  model.matrix(y.test ~ .,
+                                     data= test.set[, -c(2, 3)])[, -1]
+alpha0.fit.asis.small= cv.glmnet(ridge.train.asis.small, y.train, alpha= 0)
+lambda.asis.small= alpha0.fit.asis.small$lambda.min
+alpha0.predict.asis.train.small= predict(alpha0.fit.asis.small,
+                                         s= lambda.asis.small,
+                                         newx= ridge.train.asis.small)
+ridge.vals.asis.train.small= as.factor(
+  ifelse(alpha0.predict.asis.train.small[, 1] > 0.5, 1, 0)
+  )
+#### accuracy
+cm.ridge.asis.train.small= as.matrix(
+  table(actual= y.train,
+        predicted= ridge.vals.asis.train.small)
+)
+accu.ridge.train.asis.small= sum(diag(cm.ridge.asis.train.small)) / length(y.train)
+accu.ridge.train.asis.small
+# Accuracy on the train set: 0.722
+
+
 ### predict values on test set
 #alpha0.predict= predict(alpha0.fit, s= alpha0.fit$lambda.1se, newx= ridge.test)
 # alpha0.predict gives values in ]-2.01, 90.4[
@@ -101,7 +124,25 @@ cm.ridge.asis.test= as.matrix(
 )
 accu.ridge.test.asis= sum(diag(cm.ridge.asis.test)) / length(y.test)
 accu.ridge.test.asis
-# Accuracy on the train set: 0.723
+# Accuracy on the test set: 0.723
+
+#### accuracy removing gender and height
+alpha0.predict.asis.test.small= predict(alpha0.fit.asis.small,
+                                  s= lambda.asis,
+                                  newx= ridge.test.asis[, -c(2, 3)])
+ridge.vals.asis.test.small= as.factor(
+  ifelse(alpha0.predict.asis.test.small[, 1] > 0.5, 1, 0)
+)
+#### accuracy
+cm.ridge.asis.test.small= as.matrix(
+  table(actual= y.test,
+        predicted= ridge.vals.asis.test.small)
+)
+accu.ridge.test.asis.small= sum(diag(cm.ridge.asis.test.small)) / length(y.test)
+accu.ridge.test.asis.small
+# Accuracy on the test set: 0.725
+
+
 
 
 ## plots

@@ -102,6 +102,23 @@ cm.lda.tib.train= as.matrix(
 accu.lda.train.tib= sum(diag(cm.lda.tib.train)) / length(y.train)
 accu.lda.train.tib
 # Accuracy on the train set: 0.723
+
+#### accuracy on train set removing gender and height
+lda.model.tib.small= lda(cardio ~ ., data= train.tib[, -c(2, 3)])
+## predictions
+### train set
+lda.data.tib.train.small= predict(lda.model.tib.small,
+                                  newdata= train.tib[, -c(2, 3)])
+lda.values.tib.train.small= lda.data.tib.train.small$class
+#### accuracy
+cm.lda.tib.train.small= as.matrix(
+  table(actual= y.train,
+        predicted= lda.values.tib.train.small)
+  )
+accu.lda.train.tib.small= sum(diag(cm.lda.tib.train.small)) / length(y.train)
+accu.lda.train.tib.small
+# Accuracy on the train set: 0.723
+
 ### test set
 lda.data.tib.test= predict(lda.model.tib, newdata= test.tib)
 lda.values.tib.test= lda.data.tib.test$class
@@ -113,6 +130,20 @@ cm.lda.tib.test= as.matrix(
 accu.lda.test.tib= sum(diag(cm.lda.tib.test)) / length(y.test)
 accu.lda.test.tib
 # Accuracy on the test set: 0.724
+
+#### accuracy on test set removing gender and height
+lda.data.tib.test.small= predict(lda.model.tib.small,
+                                 newdata= test.tib[, -c(2, 3)])
+lda.values.tib.test.small= lda.data.tib.test.small$class
+#### accuracy
+cm.lda.tib.test.small= as.matrix(
+  table(actual= y.test,
+        predicted= lda.values.tib.test.small)
+  )
+accu.lda.test.tib.small= sum(diag(cm.lda.tib.test.small)) / length(y.test)
+accu.lda.test.tib.small
+# Accuracy on the test set: 0.726
+
 
 ## plots
 lda.plot(test.tib, lda.values.tib, "age", "weight")

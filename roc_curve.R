@@ -10,6 +10,7 @@ require(cluster)
 require(caret)
 require(dplyr) # %>%
 require(class)
+require(onehot)
 
 
 ## seed
@@ -117,8 +118,11 @@ ridge.pred = predict(ridge.mod, s=ridge.best.lambda, newx=x.test)
 
 # #KMeans
 # kmeans.mod
+kmax= 20
+cluster= kmeans(x.train, 5, nstart= 25)
+tot= cluster$tot.withinss
 # kmeans.pred
-# 
+
 
 # #Hierarchical Clust
 ## dimension reduction

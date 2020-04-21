@@ -125,9 +125,12 @@ ridge.pred = predict(ridge.mod, s=ridge.best.lambda, newx=x.test)
 # 
 # #KMeans
 # kmeans.mod
+kmax= 20
+cluster= kmeans(x.train, 5, nstart= 25)
+tot= cluster$tot.withinss
 # kmeans.pred
-# 
-# 
+
+
 # #Hierarchical Clust
 # gower.dist = daisy(tts2$train[,-12], metric ="gower")
 # hc.gower.mod = hclust(gower.dist, method="ward.D")

@@ -72,3 +72,6 @@ ggplot() +
   geom_line(aes(x= 1:20, y= diffs), size= 1.2, col= "blue") +
   labs(x= "k", y= "Variation")
 
+ggplot() +
+  geom_line(aes(x= 1:20, y= b), size= 1.2, col= "blue") +
+  labs(x= "k", y= "Variation")

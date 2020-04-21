@@ -22,9 +22,6 @@ split.ratio = c(0.7, 0.3)
 ## number of classes in target variable
 n.groups = 2
 
-## method
-method = "ward.D2"
-
 ## distance metric
 metric = "gower"
 
@@ -148,6 +145,31 @@ maped.true.values = as.numeric(tts$train$cardio) # as.numeric because colors mus
 x.train.1 = tts$train[,-12]
 x.test.1 = tts$test[,-12]
 
+# diferent methods to compare clusters
+methods.list = c("ward.D", "ward.D2", "single", "complete", "average", "mcquitty", "median", "centroid")
+dist = daisy(x.train.1, metric=metric)
+
+methods.acc = data.frame(0,0,0)
+names(methods.acc) = c("method", "train.accuracy", "test.accuracy")
+
+for(m in methods.list){
+  hier.mod = hclust(dist, method=m)
+  methods.acc[nrow(methods.acc)+1,] = get.hclust.train.test.error(hier.mod, n.groups,
+                                                                  x.train.1, x.test.1,
+                                                                  as.factor(tts$train$cardio),as.factor(tts$test$cardio), m)
+}
+
+methods.acc = methods.acc[-1,]
+
+ggplot() +
+  geom_line(aes(x= methods.list,
+                y= methods.acc$train.accuracy), size= 1.2, col= "blue", group = 1) +
+  labs(x= "Method", y= "Accuracy", title="HC methods accuracies (gower distance)")
+
+
+## method
+method = "ward.D"
+
 # model using the ward.D2 method and gower dist
 gower.dist.1 = daisy(x.train.1, metric =metric)
 hc.mod.1 = hclust(gower.dist.1, method=method)
@@ -171,7 +193,7 @@ label.colors.1 = colors[maped.true.values[hc.mod.1$order]]
 fviz_dend(hc.mod.1, k=n.groups, cex=0.5, 
           k_colors = colors, 
           label_cols = label.colors.1,
-          ggtheme=theme_minimal(),  main="Labels true value coloring ")
+          ggtheme=theme_minimal(),  main="Labels true value coloring (gower distance)")
 
 
 
@@ -309,7 +331,7 @@ hc.tt.res[nrow(hc.tt.res)+1,] = get.hclust.train.test.error(hc.mod.4, n.groups,
 ## Gower distance
 hc.tt.res
 #                     method train.accuracy test.accuracy
-# 1           complete model      0.5126050     0.5594406
-# 2            remove gender      0.5826331     0.5174825
-# 3            remove height      0.5182073     0.5874126
-# 4 remove gender and height      0.5826331     0.4825175
+# 1           complete model      0.5154062     0.5524476
+# 2            remove gender      0.5826331     0.4825175
+# 3            remove height      0.5182073     0.5734266
+# 4 remove gender and height      0.5854342     0.4825175

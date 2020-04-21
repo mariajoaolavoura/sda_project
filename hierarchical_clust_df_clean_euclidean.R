@@ -23,9 +23,6 @@ split.ratio = c(0.7, 0.3)
 ## number of classes in target variable
 n.groups = 2
 
-## method
-method = "ward.D2"
-
 ## distance metric
 metric = "euclidean"
 
@@ -97,7 +94,6 @@ get.hclust.train.test.error = function(model, n.groups, x.train, x.test, y.train
   # based on https://stackoverflow.com/questions/21064315/how-do-i-predict-new-datas-cluster-after-clustering-training-data
   groups = cutree(model, k=n.groups)
   groups = groups-1
-  #table(groups)
   pred.train = knn(train=x.train, test=x.train, cl=groups, k=1)
   pred.test = knn(train=x.train, test=x.test, cl=groups, k=1)
   
@@ -146,8 +142,6 @@ std.test = standardize.data.set(tts$test)
 ## label colors represent true value
 maped.true.values = as.numeric(tts$train$cardio) # as.numeric because colors must be positive
 
-#par( oma= c(0, 0, 0, 0))
-
 ##################################
 ## COMPLETE MODEL
 x.train.1 = std.train[,-12]
@@ -164,7 +158,33 @@ heatmap(x.train.1)
 # (from light yellow to dark red).
 
 
-# model using the ward.D2 method and euclidean dist
+
+# diferent methods to compare clusters
+methods.list = c("ward.D", "ward.D2", "single", "complete", "average", "mcquitty", "median", "centroid")
+dist = daisy(x.train.1, metric=metric)
+
+methods.acc = data.frame(0,0,0)
+names(methods.acc) = c("method", "train.accuracy", "test.accuracy")
+
+for(m in methods.list){
+  hier.mod = hclust(dist, method=m)
+  methods.acc[nrow(methods.acc)+1,] = get.hclust.train.test.error(hier.mod, n.groups,
+                                                                  x.train.1, x.test.1,
+                                                                  as.factor(tts$train$cardio),as.factor(tts$test$cardio), m)
+}
+
+methods.acc = methods.acc[-1,]
+ ggplot() +
+   geom_line(aes(x= methods.list,
+                 y= methods.acc$train.accuracy), size= 1.2, col= "blue", group = 1) +
+   labs(x= "Method", y= "Accuracy", title="HC methods accuracies (euclidean distance)")
+
+
+## method
+method = "ward.D"
+
+
+# model using the ward.D method and euclidean dist
 eucl.dist.1 = daisy(x.train.1, metric =metric)
 hc.mod.1 = hclust(eucl.dist.1, method=method)
 
@@ -189,7 +209,7 @@ label.colors.1 = colors[maped.true.values[hc.mod.1$order]]
 fviz_dend(hc.mod.1, k=n.groups, cex=0.5, 
           k_colors = colors, 
           label_cols = label.colors.1,
-          ggtheme=theme_minimal(),  main="Labels true value coloring ")
+          ggtheme=theme_minimal(),  main="Labels true value coloring (euclidean distance)")
 
 # heatmap
 plot.image.plot(x.train.1[patients.order.1,],
@@ -210,7 +230,6 @@ fviz_dend(hc.mod.pred.1, k=n.groups, cex=0.5, k_colors = colors,
 # heatmap
 plot.image.plot(x.train.1[,predictors.order.1],
                 c("wght", "gndr", "hght", "actv", "smk", "alco", "aphi", "aplo", "age", "chol", "gluc" ),
-                #c("actv", "smk", "alco", "wght", "gndr","hght", "chol", "gluc", "age", "aphi","aplo"),
                 "Predictors order" )
 
 
@@ -219,7 +238,7 @@ plot.image.plot(x.train.1[,predictors.order.1],
 # xlab must be equal to names(data.set[,predictors.order.1])
 plot.image.plot(x.train.1[patients.order.1,predictors.order.1],
                 c("wght", "gndr", "hght", "actv", "smk", "alco", "aphi", "aplo", "age", "chol", "gluc" ),
-                "Patients and predictors order" )
+                "Patients and predictors order (euclidean distance)" )
 
 
 
@@ -542,7 +561,7 @@ hc.tt.res[nrow(hc.tt.res)+1,] = get.hclust.train.test.error(hc.mod.4, n.groups,
 ## Eclidean distance
 hc.tt.res
 #                     method train.accuracy test.accuracy
-# 1           complete model      0.4901961     0.5034965
-# 2            remove gender      0.4901961     0.5104895
-# 3            remove height      0.4901961     0.5034965
-# 4 remove gender and height      0.4901961     0.5104895
+# 1           complete model      0.6638655     0.6643357
+# 2            remove gender      0.6778711     0.6993007
+# 3            remove height      0.6638655     0.6573427
+# 4 remove gender and height      0.6526611     0.6293706

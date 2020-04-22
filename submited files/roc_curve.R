@@ -8,7 +8,7 @@ require(ggplot2)
 require(glmnet)
 require(cluster)
 require(caret)
-require(dplyr) # %>%
+require(dplyr)
 require(class)
 require(onehot)
 
@@ -116,38 +116,6 @@ ridge.mod = glmnet(x.train, y.train, alpha=0)
 ridge.pred = predict(ridge.mod, s=ridge.best.lambda, newx=x.test)
 
 
-
-
-# ## dimension reduction
-# ds = reduce.data.set(data.set, 5000, seed)
-# ## split data
-# tts2 = split_df(ds, ratio=split.ratio, seed=seed)
-# 
-# #KMeans
-# kmeans.mod
-kmax= 20
-cluster= kmeans(x.train, 5, nstart= 25)
-tot= cluster$tot.withinss
-# kmeans.pred
-
-
-# #Hierarchical Clust
-# gower.dist = daisy(tts2$train[,-12], metric ="gower")
-# hc.gower.mod = hclust(gower.dist, method="ward.D")
-# gower.groups = cutree(hc.gower.mod, k=2)-1
-# hc.gower.pred = knn(train=tts2$train[,-12], test=tts2$test[,-12], cl=gower.groups, k=1, prob= T)
-# hc.gower.pred = attributes(hc.gower.pred)$prob
-# 
-# std.train = standardize.data.set(tts2$train)
-# std.test = standardize.data.set(tts2$test)
-# eucl.dist = daisy(std.train[,-12], metric ="euclidean")
-# hc.eucl.mod = hclust(eucl.dist, method="ward.D")
-# eucl.groups = cutree(hc.eucl.mod, k=2)-1
-# hc.eucl.pred = knn(train=std.train[,-12], test=std.test[,-12], cl=eucl.groups, k=1, prob= T)
-# hc.eucl.pred = attributes(hc.eucl.pred)$prob
-
-
-
 ## ROC
 y.test = as.numeric(tts$test$cardio)
 logr.roc= roc(y.test, logr.pred, quiet=T)
@@ -155,9 +123,6 @@ lda.roc=  roc(y.test, lda.pred[, 2], quiet=T)
 qda.roc=  roc(y.test, qda.pred[, 2], quiet=T)
 lasso.roc= roc(y.test, lasso.pred, quiet=T)
 ridge.roc= roc(y.test, ridge.pred, quiet=T)
-#kmeans.roc= roc(y.test, kmens.pred, quiet=T)
-# hc.gower.roc = roc(as.numeric(tts2$test$cardio), hc.gower.pred, quiet=T)
-# hc.eucl.roc = roc(as.numeric(std.test[,12]), hc.eucl.pred, quiet=T)
 
 roc.mods= list(
   LogR  = logr.roc,
@@ -165,14 +130,7 @@ roc.mods= list(
   QDA   = qda.roc,
   Lasso = lasso.roc,
   Ridge = ridge.roc
-  # KMeans = kmeans.roc,
-  # HC.gower= hc.gower.roc,
-  # HC.eucl = hc.eucl.roc
 )
-
-# LogR == LDA == Lasso == Ridge
-# LogR != QDA != HC
-# gower == euclidean
 
 
 # # AUCs
@@ -183,9 +141,9 @@ auc.lda.per= paste0("AUC~(LDA):~~", round(100*auc.lda, 1), "*\'%\'")
 auc.qda= auc(qda.roc)
 auc.qda.per= paste0("AUC~(QDA):~~", round(100*auc.qda, 1), "*\'%\'")
 auc.lasso= auc(lasso.roc)
-auc.lasso.per= paste0("AUC~(Lasso):~", round(100*auc.lasso, 1), "*\'%\'")
+auc.lasso.per= paste0("AUC~(Ridge):~", round(100*auc.lasso, 1), "*\'%\'")
 auc.ridge= auc(ridge.roc)
-auc.ridge.per= paste0("AUC~(Ridge):~", round(100*auc.ridge, 1), "*\'%\'")
+auc.ridge.per= paste0("AUC~(Lasso):~", round(100*auc.ridge, 1), "*\'%\'")
 
 
 auc.labels= list(

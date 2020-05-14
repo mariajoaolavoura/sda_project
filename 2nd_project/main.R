@@ -1,5 +1,6 @@
 library(GGally) # ggpairs
-library(e1071) # skewness
+library(e1071) # skewness, kurtosis
+
 
 set.seed(123)
 
@@ -32,15 +33,18 @@ unique(rowMeans(is.na(df)))
 # we can procede to imputation of the centered value
 na.columns = which(colMeans(is.na(df))>0)
 for(i in na.columns){
+  print(i)
   df[is.na(df[,i]), i] = round(mean(df[,i], na.rm = TRUE), 2)
 }
 
-
+colMeans(is.na(df))
+unique(rowMeans(is.na(df)))
+# Clean df
 
 ## Univariate Analysis
 
 # Indicators (position, dispersion, form..), graphic representations, analysis of (possible) outliers
-# Position : mean, trimmed mean, median - and comparison between them ; quartiles,.
+# Position : mean, trimmed mean, median - and comparison between them; quartiles,... 
 # Dispersion: range and inter-quartile range, variance and standard deviation, coefficient of variation (for variables that do not change sign)
 # Shape : skewness, kurtosis
 summary(df)
@@ -51,9 +55,14 @@ boxplot(df[,-1])
 
 plot.univariate.analysis = function(x, name){
   par(mfrow= c(1, 2), oma= c(0, 2, 3, 1))
-  print(summary(x))
+  print(summary(x))                               # mean - influenced by outliers, not so robust; median - better suited for skewed dist to derive at central tendency
+  #print(paste("range =", range(x)))
+  print(paste("inter-quartile range =", IQR(x)))  # less sensitive to outliers, useful to identify them
   print(paste("variance =", var(x)))
-  print(paste("skewness =", skewness(x)))
+  print(paste("st. deviation =", sd(x)))          # how close the values are to the mean
+  print(paste("skewness =", skewness(x)))         # shape
+  print(paste("kurtosis =", kurtosis(x)))         # excess kurtosis describes the tail shape of the distribution. The normal distribution has zero excess kurtosis and thus the standard tail shape. It is said to be mesokurtic. Negative excess kurtosis would indicate a thin-tailed data distribution, and is said to be platykurtic. Positive excess kurtosis would indicate a fat-tailed distribution, and is said to be leptokurtic. 
+  
   hist(x,
        breaks= seq(round(min(x))-5, round(max(x))+5, by= 5),
        main= paste("Boxplot of ", name))
@@ -65,6 +74,7 @@ plot.univariate.analysis = function(x, name){
 
 ## Gal.long
 plot.univariate.analysis(df$Gal.long, "Gal.long")
+# neg kurtosis, platykurtic, thin tailed dist, consistent with not bel shaped
 # No outliers
 # u distribution
 
@@ -154,6 +164,9 @@ plot.univariate.analysis(df$Cent.surf.bright, "Cent.surf.bright")
 # left skewed
 
 
+## Outliers
+
+
 ## Bivariate Analysis
 
 # Analysis of correlations for numerical variables.
@@ -161,6 +174,14 @@ plot.univariate.analysis(df$Cent.surf.bright, "Cent.surf.bright")
 # Statistical tests (e.g. comparison of means/medians between populations) if pertinent
 
 ggpairs(df[,-1])
+
 ggcorr(df[,-1], label = TRUE)
 # Several high correlations, even 100% correlations
+
+
+
+## PCA
+
+## Factor analysis
+
 

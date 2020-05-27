@@ -1,6 +1,7 @@
 library(GGally) # ggpairs
 library(e1071) # skewness, kurtosis
-
+library(ggplot2)
+library(gridExtra)
 
 set.seed(123)
 
@@ -53,113 +54,134 @@ boxplot(df[,-1])
 # we can see a clear difference in position btw the different features
 # The majority of them have outliers
 
-plot.univariate.analysis = function(x, name){
-  par(mfrow= c(1, 2), oma= c(0, 2, 3, 1))
-  print(summary(x))                               # mean - influenced by outliers, not so robust; median - better suited for skewed dist to derive at central tendency
-  #print(paste("range =", range(x)))
-  print(paste("inter-quartile range =", IQR(x)))  # less sensitive to outliers, useful to identify them
-  print(paste("variance =", var(x)))
-  print(paste("st. deviation =", sd(x)))          # how close the values are to the mean
-  print(paste("skewness =", skewness(x)))         # shape
-  print(paste("kurtosis =", kurtosis(x)))         # excess kurtosis describes the tail shape of the distribution. The normal distribution has zero excess kurtosis and thus the standard tail shape. It is said to be mesokurtic. Negative excess kurtosis would indicate a thin-tailed data distribution, and is said to be platykurtic. Positive excess kurtosis would indicate a fat-tailed distribution, and is said to be leptokurtic. 
+# plot.univariate.analysis = function(x, name){
+#   par(mfrow= c(1, 2), oma= c(0, 2, 3, 1))
+#   print(summary(x))                               # mean - influenced by outliers, not so robust; median - better suited for skewed dist to derive at central tendency
+#   #print(paste("range =", range(x)))
+#   print(paste("inter-quartile range =", IQR(x)))  # less sensitive to outliers, useful to identify them
+#   print(paste("variance =", var(x)))
+#   print(paste("st. deviation =", sd(x)))          # how close the values are to the mean
+#   print(paste("skewness =", skewness(x)))         # shape
+#   print(paste("kurtosis =", kurtosis(x)))         # excess kurtosis describes the tail shape of the distribution. The normal distribution has zero excess kurtosis and thus the standard tail shape. It is said to be mesokurtic. Negative excess kurtosis would indicate a thin-tailed data distribution, and is said to be platykurtic. Positive excess kurtosis would indicate a fat-tailed distribution, and is said to be leptokurtic. 
+#   
+#   hist(x,
+#        breaks= seq(round(min(x))-5, round(max(x))+5, by= 5),
+#        main= paste("Boxplot of ", name))
+#   boxplot(x, yaxt= 'n',
+#           main= paste("Boxplot of ", name))
+#   axis(2, las= 2)
+# }
+
+plot.univariate.analysis = function(df, ft, label){
+  #par(mfrow= c(1, 2), oma= c(0, 2, 3, 1))
+  print(summary(ft))
+  print(paste("variance =", var(ft)))
+  print(paste("skewness =", skewness(ft)))
   
-  hist(x,
-       breaks= seq(round(min(x))-5, round(max(x))+5, by= 5),
-       main= paste("Boxplot of ", name))
-  boxplot(x, yaxt= 'n',
-          main= paste("Boxplot of ", name))
-  axis(2, las= 2)
+  g1 = ggplot(df,aes(y=ft)) +
+    labs(title=paste("Boxplot of",label), y=label) +
+    theme(axis.text.x=element_blank(),
+          axis.ticks.x=element_blank())+
+    geom_boxplot()
+  
+  g2 = ggplot(df,aes(x=ft)) +
+    labs(title=paste("Histogram of",label), x=label) +
+    geom_histogram()
+  
+  g = grid.arrange(g1, g2, nrow=1)
+  ggsave(paste("hist_and_box_raw",label,".png", sep="_"), g)
+  print(g)
 }
 
 
 ## Gal.long
-plot.univariate.analysis(df$Gal.long, "Gal.long")
+plot.univariate.analysis(df, df$Gal.long, "Gal.long")
 # neg kurtosis, platykurtic, thin tailed dist, consistent with not bel shaped
 # No outliers
 # u distribution
 
 ## Gal.lat
-plot.univariate.analysis(df$Gal.lat, "Gal.lat")
+plot.univariate.analysis(df, df$Gal.lat, "Gal.lat")
 # outliers
 # normal distribution
 
 ## R.sol.kpc
-plot.univariate.analysis(df$R.sol.kpc, "R.sol.kpc")
+plot.univariate.analysis(df, df$R.sol.kpc, "R.sol.kpc")
 # outliers
 # left skewed
 
 ## R.GC.kpc
-plot.univariate.analysis(df$R.GC.kpc, "R.GC.kpc")
+plot.univariate.analysis(df, df$R.GC.kpc, "R.GC.kpc")
 # outliers
 # left skewed
 
 ## m.H.metal
-plot.univariate.analysis(df$m.H.metal, "m.H.metal")
+plot.univariate.analysis(df, df$m.H.metal, "m.H.metal")
 # no outliers
 # right skewed?
 
 ## Mv
-plot.univariate.analysis(df$Mv, "Mv")
+plot.univariate.analysis(df, df$Mv, "Mv")
 # outliers
 # normal dist
 
 ## r.core.pc
-plot.univariate.analysis(df$r.core.pc, "r.core.pc")
+plot.univariate.analysis(df, df$r.core.pc, "r.core.pc")
 # outliers
 # left skewed
 
 ## r.tidal.pc
-plot.univariate.analysis(df$r.tidal.pc, "r.tidal.pc")
+plot.univariate.analysis(df, df$r.tidal.pc, "r.tidal.pc")
 # outliers
 # left skewed
 
 ## conc
-plot.univariate.analysis(df$conc, "conc")
+plot.univariate.analysis(df, df$conc, "conc")
 # outliers
 # normal dist
 
 ## log.t.rad
-plot.univariate.analysis(df$log.t.rad, "log.t.rad")
+plot.univariate.analysis(df, df$log.t.rad, "log.t.rad")
 # outliers
 # normal dist?
 
 ## log.rho.cen
-plot.univariate.analysis(df$log.rho.cen, "log.rho.cen")
+plot.univariate.analysis(df, df$log.rho.cen, "log.rho.cen")
 # no outliers
 # normal dist?
 
 ## s0.km.s
-plot.univariate.analysis(df$s0.km.s, "s0.km.s")
+plot.univariate.analysis(df, df$s0.km.s, "s0.km.s")
 # outliers
 # left skewed
 
 ## V.esc.km.s
-plot.univariate.analysis(df$V.esc.km.s, "V.esc.km.s")
+plot.univariate.analysis(df, df$V.esc.km.s, "V.esc.km.s")
 # outliers
 # left skewed
 
 ## VHB.magl
-plot.univariate.analysis(df$VHB.magl, "VHB.magl")
+plot.univariate.analysis(df, df$VHB.magl, "VHB.magl")
 # outliers
 # normal dist?
 
 ## E.B.V.mag
-plot.univariate.analysis(df$E.B.V.mag, "E.B.V.mag")
+plot.univariate.analysis(df, df$E.B.V.mag, "E.B.V.mag")
 # outliers
 # right skewed
 
 ## Ellipt
-plot.univariate.analysis(df$Ellipt, "Ellipt")
+plot.univariate.analysis(df, df$Ellipt, "Ellipt")
 # outliers
 # normal dist
 
 ## V.t.mag
-plot.univariate.analysis(df$V.t.mag, "V.t.mag")
+plot.univariate.analysis(df, df$V.t.mag, "V.t.mag")
 # no outliers
 # normal dist?
 
 ## Cent.surf.bright
-plot.univariate.analysis(df$Cent.surf.bright, "Cent.surf.bright")
+plot.univariate.analysis(df, df$Cent.surf.bright, "Cent.surf.bright")
 # outliers
 # left skewed
 
@@ -175,8 +197,13 @@ plot.univariate.analysis(df$Cent.surf.bright, "Cent.surf.bright")
 
 ggpairs(df[,-1])
 
-ggcorr(df[,-1], label = TRUE)
+# ggcorr(df[,-1], label = TRUE)
 # Several high correlations, even 100% correlations
+ggcorr(df[,-1], geom = "blank", label = TRUE, hjust = 0.67, size=2.5) +
+  geom_point(size = 10, aes(color = coefficient > 0, alpha = abs(coefficient) > 0.5)) +
+  scale_alpha_manual(values = c("TRUE" = 0.25, "FALSE" = 0)) +
+  guides(color = FALSE, alpha = FALSE)
+ggsave("correlations.png")
 
 
 

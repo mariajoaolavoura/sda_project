@@ -195,7 +195,7 @@ plot.univariate.analysis(df, df$Cent.surf.bright, "Cent.surf.bright")
 # Contingency tables for some pairs (considered of particular interest) of categorical variables.
 # Statistical tests (e.g. comparison of means/medians between populations) if pertinent
 
-ggpairs(df[,-1])
+#ggpairs(df[,-1])
 
 # ggcorr(df[,-1], label = TRUE)
 # Several high correlations, even 100% correlations
@@ -206,9 +206,11 @@ ggcorr(df[,-1], geom = "blank", label = TRUE, hjust = 0.67, size=2.5) +
 ggsave("correlations.png")
 
 
+# Center the variables
 
-## PCA
+clean = df
+clean[,-1] = scale(df[,-1])
 
-## Factor analysis
+write.csv(clean, "./data/cleaned.csv", row.names=F)
 
 

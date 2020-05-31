@@ -388,6 +388,14 @@ dat.dyn= dat.num[, -c(1:4)]
 
 
 
+# save data sets ----------------------------------------------------------
+saveRDS(dat.loc, "./data/location.dat") # readRDS to load; eg:
+saveRDS(dat.dyn, "./data/dynamics.dat") # a= readRDS("./data/dynamics.dat")
+write.csv(dat.loc, "./data/location.csv")
+write.csv(dat.dyn, "./data/dynamics.csv")
+
+
+
 # bivariate relationships -------------------------------------------------
 ## pair plot without density plots
 ggpairs(

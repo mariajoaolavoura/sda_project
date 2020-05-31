@@ -175,12 +175,12 @@ boxes.qqs(dat.raw[, 2:20])
 
 # data set preparation ----------------------------------------------------
 # remove NAs
-dat.raw= na.omit(dat.gc) # 34 rows removed
+dat.na= na.omit(dat.raw) # 34 rows removed
 
 
 # remove outliers
 ## r.tidal
-r.tidal.histo= ggplot(dat.raw[, 9]) +
+r.tidal.histo= ggplot(dat.na[, 9]) +
   geom_histogram(
     aes(r.tidal),
     bins= 30,
@@ -194,7 +194,7 @@ r.tidal.histo= ggplot(dat.raw[, 9]) +
   ) +
   theme_bw()
 
-r.tidal.box= ggplot(dat.raw[, 9]) +
+r.tidal.box= ggplot(dat.na[, 9]) +
   geom_boxplot(aes(r.tidal)) +
   labs(
     x= "Tidal radius (pc)",
@@ -203,7 +203,7 @@ r.tidal.box= ggplot(dat.raw[, 9]) +
   theme_bw()
 
 r.tidal.qq= ggplot(
-  dat.raw[, 9],
+  dat.na[, 9],
   aes(sample= r.tidal)
 ) +
   stat_qq() +
@@ -217,34 +217,93 @@ r.tidal.qq= ggplot(
   ) +
   theme_bw()
 
-toprow= plot_grid(
+toprow.r.tidal= plot_grid(
   r.tidal.histo,
   r.tidal.box,
   rel_widths= c(3, 2),
   labels= "AUTO"
 )
 plot_grid(
-  toprow,
+  toprow.r.tidal,
   r.tidal.qq,
   ncol= 1,
   labels= c("", "C")
 )
 
 ## outlier with tidal radius > 250 pc ==> to remove
-out.row.r.tidal= which.max(dat.raw[, 9][[1]]) # 12
-dat.raw[out.row.r.tidal, ]
-out.r.tidal= dat.raw[out.row.r.tidal, 9][[1]] # 284.8
-r.tidal.mean= mean(dat.raw$r.tidal) # 41.50177
-r.tidal.std= sd(dat.raw$r.tidal) # 35.39065
+out.row.r.tidal= which.max(dat.na[, 9][[1]]) # 12
+dat.na[out.row.r.tidal, ]
+out.r.tidal= dat.na[out.row.r.tidal, 9][[1]] # 284.8
+r.tidal.mean= mean(dat.na$r.tidal) # 41.50177
+r.tidal.std= sd(dat.na$r.tidal) # 35.39065
 (out.r.tidal - r.tidal.mean) / r.tidal.std # 6.874646
 ## outlier deviates almost 7*sigma from the mean ==> to remove!
 
-summary(dat.raw[-out.row.r.tidal, 9][[1]])
+summary(dat.na[-out.row.r.tidal, 9][[1]])
 ## min = 6.5, max = 142.6, median = 32.4, mean= 39.33
 
 
+## conc
+conc.histo= ggplot(dat.na[, 10]) +
+  geom_histogram(
+    aes(conc),
+    bins= 30,
+    col= "white",
+    alpha= 0.5
+  ) +
+  labs(
+    x= "Core concentration parameter",
+    y= "Counts",
+    title= TeX("Histogram of $\\textit{conc}$")
+  ) +
+  theme_bw()
+
+conc.box= ggplot(dat.na[, 10]) +
+  geom_boxplot(aes(conc)) +
+  labs(
+    x= "Core concentration parameter",
+    title= TeX("Boxplot of $\\textit{core}$")
+  ) +
+  theme_bw()
+
+conc.qq= ggplot(
+  dat.na[, 10],
+  aes(sample= conc)
+) +
+  stat_qq() +
+  stat_qq_line(
+    colour= "red",
+    size= 1.0,
+    alpha= 0.5
+  ) +
+  labs(
+    title= TeX("QQ-norm of $\\textit{conc}$")
+  ) +
+  theme_bw()
+
+toprow.conc= plot_grid(
+  conc.histo,
+  conc.box,
+  rel_widths= c(3, 2),
+  labels= "AUTO"
+)
+plot_grid(
+  toprow.conc,
+  conc.qq,
+  ncol= 1,
+  labels= c("", "C")
+)
+
+## no outliers detected
+## outlier previously detected disappeared on NAs removal
+
+summary(dat.na[-out.row.r.tidal, 10][[1]])
+## min = 0.7, max = 2.5, median = 1.5, mean= 1.546
+
+
+
 ## e.bv
-e.bv.histo= ggplot(dat.raw[, 16]) +
+e.bv.histo= ggplot(dat.na[, 16]) +
   geom_histogram(
     aes(e.bv),
     bins= 30,
@@ -258,7 +317,7 @@ e.bv.histo= ggplot(dat.raw[, 16]) +
   ) +
   theme_bw()
 
-e.bv.box= ggplot(dat.raw[, 16]) +
+e.bv.box= ggplot(dat.na[, 16]) +
   geom_boxplot(aes(e.bv)) +
   labs(
     x= "B-V colour excess (mag)",
@@ -267,7 +326,7 @@ e.bv.box= ggplot(dat.raw[, 16]) +
   theme_bw()
 
 e.bv.qq= ggplot(
-  dat.raw[, 16],
+  dat.na[, 16],
   aes(sample= e.bv)
 ) +
   stat_qq() +
@@ -281,38 +340,47 @@ e.bv.qq= ggplot(
   ) +
   theme_bw()
 
-toprow= plot_grid(
+toprow.e.bv= plot_grid(
   e.bv.histo,
   e.bv.box,
   rel_widths= c(3, 2),
   labels= "AUTO"
 )
 plot_grid(
-  toprow,
+  toprow.e.bv,
   e.bv.qq,
   ncol= 1,
   labels= c("", "C")
 )
 
 ## outlier with extinction > 1.5
-out.row.e.bv= which.max(dat.raw[, 16][[1]]) # 63
-dat.raw[out.row.e.bv, ]
-out.e.bv= dat.raw[out.row.e.bv, 16][[1]] # 2.9
-e.bv.mean= mean(dat.raw$e.bv) # 0.3300885
-e.bv.std= sd(dat.raw$e.bv) # 0.4022004
+out.row.e.bv= which.max(dat.na[, 16][[1]]) # 63
+dat.na[out.row.e.bv, ]
+out.e.bv= dat.na[out.row.e.bv, 16][[1]] # 2.9
+e.bv.mean= mean(dat.na$e.bv) # 0.3300885
+e.bv.std= sd(dat.na$e.bv) # 0.4022004
 (out.e.bv - e.bv.mean) / e.bv.std # 6.389629
 ## outlier deviates more than 6*sigma from the mean ==> to remove
+## after NAs removal, no other outliers are detected in e.bv
+## double check:
+dat.raw %>%
+  arrange(-e.bv) %>%
+  slice_max(e.bv > 1.5)
+dat.na %>%
+  arrange(-e.bv) %>%
+  slice_max(e.bv > 1.5)
 
-summary(dat.raw[-out.row.e.bv, 16][[1]])
+summary(dat.na[-out.row.e.bv, 16][[1]])
 ## min = 0, max = 1.5, median = 0.2, mean = 0.3071
 
 # remove identified outliers
-dat.go= dat.raw %>%
+dat.out= dat.na %>%
   slice(-c(out.row.r.tidal, out.row.e.bv))
+## two outliers removed
 
 
 # standardise variables
-dat.num= as_tibble(scale(dat.go[, -1]))
+dat.num= as_tibble(scale(dat.out[, -1]))
 
 # separate variables: location + dynamics
 dat.loc= dat.num[,  c(1:4)]

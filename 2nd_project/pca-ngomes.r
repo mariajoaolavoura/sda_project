@@ -56,6 +56,8 @@ pca.dyn$var
 
 ## Similar for PC4 and PC5.
 
+pca.dyn$ind
+
 
 
 # eigenvalues -------------------------------------------------------------

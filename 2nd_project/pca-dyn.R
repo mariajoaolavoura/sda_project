@@ -4,7 +4,7 @@ library("FactoMineR")
 set.seed(123)
 
 ## Read data frame
-df = readRDS("./data/cleaned.csv") 
+df = readRDS("./data/dynamics.dat") 
 
 # View(df)
 # dim(df)
@@ -12,7 +12,7 @@ df = readRDS("./data/cleaned.csv")
 summary(df)
 
 ## PCA
-pca = PCA(df[,-1])
+pca = PCA(df)
 pca
 
 

@@ -12,6 +12,7 @@ require(cowplot)
 require(FactoMineR)
 require(GGally)
 require(latex2exp)
+require(MASS)
 require(tidyverse)
 
 # theme_set(theme_cowplot())
@@ -391,9 +392,12 @@ dat.dyn= dat.num[, -c(1:4)]
 # save data sets ----------------------------------------------------------
 saveRDS(dat.loc, "./data/location.dat") # readRDS to load; eg:
 saveRDS(dat.dyn, "./data/dynamics.dat") # a= readRDS("./data/dynamics.dat")
+saveRDS(dat.num, "./data/gc.dat")
 write.csv(dat.loc, "./data/location.csv")
 write.csv(dat.dyn, "./data/dynamics.csv")
-
+dat.loc= readRDS("./data/location.dat")
+dat.dyn= readRDS("./data/dynamics.dat")
+dat.num= readRDS("./data/gc.dat")
 
 
 # bivariate relationships -------------------------------------------------
@@ -461,3 +465,45 @@ dat.dyn %>%
 
 cor(dat.dyn, method= "kendall")
 var(dat.dyn)
+
+pairs(
+  dat.dyn[, 5:8],
+  main= "", labels= names(dat.dyn[5:8]),
+  panel= function(x, y) {
+    abline(
+      lsfit(x, y)$coef,
+      lwd= 2,
+      col= "deeppink2"
+    )
+    lines(
+      lowess(x, y),
+      lwd= 3,
+      col= "blue3",
+      lty= 2
+    )
+    points(
+      x, y,
+      pch= 21,
+      bg= c("red", "green3", "blue")
+    )
+    rug(
+      jitter(x, factor= 3),
+      side= 1,
+      col= "lightcoral",
+      ticksize= -0.05
+    )
+    rug(
+      jitter(y, factor= 3),
+      side= 2,
+      col= "cornflowerblue",
+      ticksize= -0.05
+    )
+    contour(
+      kde2d(x, y)$x, kde2d(x, y)$y, kde2d(x, y)$z,
+      drawlabels= F,
+      add= T,
+      col= "darkblue",
+      nlevel= 4
+    )
+  }
+)

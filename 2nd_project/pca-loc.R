@@ -69,38 +69,37 @@ plot(pca, axes = c(1,3), choix = c("var"), col.var="black")
 # the signs of the arrows correspond to the sign of the eigenvectors
 
 # Dim 1 has about the same high positive value for r.sol and r.gc. 
-# A smaller but still positive value for gal.long and something close
+# A small but still positive value for gal.long and something close
 # to gal.long simetric for gal.lat. Dim 1 represents completely globular 
-# clusters that are further away to the sun or the galaxy center and
-# expresses, not so well, the clusters at the "bottom center left" of
-# the galaxy. Therefore, Dim 1 oposes globular clusters that are 
-# closer to our Sun or to the galactic center, in other words, clusters
-# that are closer to the galactic disk, being more exposed to dust and 
-# radiation, which are harder to see i.e. have greater extinction.
+# clusters that are further away of the sun or the galaxy center, which 
+# means that they might be less exposed to dust and radiation, so are
+# easier to see i.e. have smaller extinction. Dim 1 does not expresse
+# well the clusters' position, so we won't focus on this variables for 
+# interpretation. Dim 1 oposes globular clusters that are closer to our 
+# Sun or to the galactic center, in other words, clusters that are more 
+# prone to be exposed to dust and radiation, which are harder to see 
+# i.e. have greater extinction.
 
-# Dim 2 has a high positive value for gal.long, the symmetric for
-# gal.lat and zero for r.sol and r.gc. It expresses well the coordinates
-# of the globular clusters that are in the "right upper corner" of the 
-# galaxy. It expresses nothing of r.sol and r.gc (as expected, since 
-# Dim1 already explained almost everything). It oposes the clusters 
-# that are in the "left lower corner". This dimension represents well
-# clusters that are far away from the galactic disk, meaing they are 
-# less exposed to dust and are easier to see, i.e less extinction. Its 
-# oposition, "left lower corner", represents the same situation,
-# globular clusters with lower extinction.
+# Dim 2 has a high positive value for gal.long and gal.lat and zero for 
+# r.sol and r.gc. It expresses well the relative position of the clusters
+# to the galactic disk. Dim 2 represents clusters that are in the halo of 
+# the galaxy. This means the clusters are less exposed to dust and are 
+# easier to see, i.e less extinction. With zero value for r.sol and r.gc,
+# Dim 2 expresses nothing of how close the clusters are to the galaxy 
+# center or to our sun. As expected, since Dim1 already explained almost 
+# everything of that variables. Dim 2 oposes the clusters that are in 
+# galactic disk, meaning they are more exposed to dust and are harder to 
+# see, i.e clusters that are more extinct.
 
 # Dim 3 has a relatively high negative value for gal.long, a 
 # relatively high positive value for gal.lat and a small positive 
 # value for r.sol and r.gc. This dimension represents the symmetric of
-# Dim 2, coordinates wise. It expresses relatively well the 
-# coordinates of the globular clusters that are in the "right lower
-# corner" of the galaxy and expresses, not so well, the clusters that
-# are not so far away from the galactic center and our sun. It oposes 
-# the clusters that are in the "left upper corner". It expresses 
-# relatively well clusters that are far away from the galactic disk, 
-# meaing they are less exposed to dust and are easier to see, i.e less
-# extinction. Its oposition, "left upper corner", represents the same
-# situation, globular clusters with lower extinction. 
+# Dim 2, longitude wise. It represents clusters that are in the halo of 
+# the galaxy but in the oposite longitude. It doesn't express well the
+# distance to the galaxy's center or to our sun, so we won't focus on it.
+# It oposes, like Dim 2, the clusters that are in galactic disk, meaning 
+# they are more exposed to dust and are harder to see, i.e clusters that
+# are more extinct, but in the oposite position in space.
 
 
 
@@ -109,21 +108,19 @@ pca$var$cor
 # Dim 1
 # -high positive corr r.sol and r.gc, 0.984 and 0.985
 # -explains well the ones further away from the sun and galatic center
-# -oposes the ones that are closer to the galatic disk
+# -oposes the ones that are closer to the the center or the sun
 
 # Dim 2
 # -high positive corr gal.long and g.lat, 0.736 and 0.735
-# -explains well the coordinates of the globular clusters
-# that are in the "right upper corner" of the galaxy
-# -oposes the ones that are "left lower corner" the galaxy
+# -explains well the relative position of the globular clusters
+# that are in the halo of the galaxy with high positive longitude value
+# -oposes the ones that are in the galaxy disk
 
 # Dim 3
 # -relatively hight negative correlation for gal.long, -0.652
 # relatively hight positive correlation for gal.lat, 0.652
-# -explains the inverse of Dim 2
-# explains well the coordinates of the globular clusters [review]
-# that are "right lower corner" the galaxy 
-# -oposes the ones that are "left upper corner" the galaxy
+# -explains the same as Dim 2 but in the oposite longitude
+
 
 # Dim 4 
 # was not chosen and displays very small correlations
@@ -134,13 +131,13 @@ pca$var$contrib
 # will be those that contribute more
 # Dim 1 has ~48% for r.sol and r.gc
 # Dim 2 has ~50% for gal.long and gal.lat
-# Dim 3 has ~48% for gal.long and gal.lat and ~2% for r.sol and r.gc
+# Dim 3 has ~48% for gal.long and gal.lat
 
 
 ## Interpretation - In regard of the individuals
 g = ggplot(df, aes(x=gal.long, y=gal.lat))+
      geom_point()+
-      geom_point(x=0,y=0)+
+      geom_point(shape=21,x=0,y=0, size=5)+
        geom_hline(yintercept=0)+
         labs(title="Distribution of globular clusters through space",
            x="longitude",
@@ -158,59 +155,6 @@ plot(pca, axes = c(1,2), choix = c("ind","var","varcor"), col.var="black")
 #png("loc_pca_graph_ind_dim13.png")
 plot(pca, axes = c(1,3), choix = c("ind","var","varcor"), col.var="black")
 #dev.off()
-
-# Dim 1 vs Dim 2 - Clusters 5, 6, 13, 19, 20 are more extreme
-# Dim 1 vs Dim 3 - Clusters 5, 6, 13, 22, 8 are more extreme
-
-# Analysing 5,6,13,19 and 22
-# 5 and 6 are positive and high in Dim 1, meaning they are further 
-# away from our sun and the galactic center. They are negative and 
-# small in Dim 2, meaning they might be closer to the "center" but in 
-# the "left" side of the galaxy. Both of them are next to zero in 
-# Dim 3, which is the symmetric of Dim 2, doesnt have any influence over them . So, 5 and 6 seem to
-# be on the "center left" not so close to the galactic center or sun.
-
-# 13 is positive and relatively high in Dim 1, meaning it's not so 
-# further away from our sun and the galactic center. It is positive and
-# relatively small in Dim 2, meaning it might be more at the "right 
-# side" of the "center". It is positive and relatively high in Dim 3,
-# which is the symetric of Dim 2, meaning it might be closer to the 
-# "right lower corner" of the galaxy. Because of the contradictions
-# caused by Dim 2 and 3 and since Dim 2 explains a bigger percentage
-# of the total variance, the conclusions of Dim 2 will be taken into
-# consideration over the Dim 3's. So, 13 seems to be on the "center 
-# right" and relatively close to the sun or galactic center.
-
-# 19 has small positive value in Dim 1, meaning it's not so further
-# away of our sun and the galactic center. It's positive and high 
-# in Dim 2 meaning it might be in the "right upper corner" of the 
-# galaxy. It's positive and relatively small in Dim 3, meaning it 
-# might be in between the "center right" and the "right lower corner"
-# of the galaxy. This way, 19 seems to be closer to the "right upper 
-# corner" than the "right lower corner" of the galaxy and somewhat 
-# away from the galactic center and our sun.
-
-# 22 has small negative value in Dim 1, meaning it's closer to our 
-# sun and the galactic center. It's positive and relatively small
-# in Dim 2 meaning it would be in between of "right upper corner" and 
-# "center right" of the galaxy. It's positive and high in Dim 3, 
-# meaning it would be on the "right lower corner" of the galaxy. 
-# This way, 22 seems to be close to the "right lower corner" of the 
-# galaxy and somewhat close to the galactic center and our sun.
-
-# as proof of what was concluded is write... (I'm very clever ehehe)
-g = ggplot(df[c(5,6,13,19,22),], aes(x=gal.long, y=gal.lat))+
-      geom_hline(yintercept=0)+
-      geom_point()+
-      geom_text(aes(label=c("5","6","13","19","22")),hjust=0, vjust=0)+
-      geom_point(x=0,y=0)+
-      #lims(x=c(-3,2.8), y=c(-1.1,1.25))+
-      labs(title="Distribution of globular clusters through space",
-           x="longitude",
-           y="latitude")
-g
-#ggsave("loc_clusters_specific_coord.png", g)
-
 
 ## Contributions
 ## the more extreme will have the higher contribution
@@ -230,6 +174,59 @@ pca$ind$contrib[c(5,6,13,19,22),]
 # 13 19.21680635 1.6023957 3.732356358 0.1542186
 # 19  0.05815655 6.2899501 1.676790230 0.4472714
 # 22  0.11902428 1.5250545 6.294405448 1.3400676
+
+# Dim 1 vs Dim 2 - Clusters 5, 6, 13, 19, 20 are more extreme
+# Dim 1 vs Dim 3 - Clusters 5, 6, 13, 22, 8 are more extreme
+
+# Analysing 5,6,13,19 and 22
+# 5 and 6 are positive and high in Dim 1, meaning they are further 
+# away from our sun and the galactic center. They are negative and 
+# small in Dim 2, meaning they might be somewhat close to the galactic 
+# disk and with a positive but not very high longitude value. Both of 
+# them are next to zero in Dim 3, so this dimension doesn't have any 
+# influence over them. In summary, 5 and 6 seem to be relatively close
+# to the galactic disk yet away from the galactic center and sun.
+
+# 13 is positive and relatively high in Dim 1, meaning it's not so 
+# further away from our sun and the galactic center. It is positive and
+# relatively small in Dim 2, meaning it might be somewhat away from the
+# galactic disk, ie closer to the halo than the disk of the galaxy. 13 is
+# positive and relatively high in Dim 3, reinforcing the fact of being 
+# in the halo. Since Dim 2 and 3 are oposite in terms of longitude and 
+# given that Dim 2 explains a bigger percentage of the total variance, 
+# the conclusions of Dim 2 will be taken into consideration over the 
+# Dim 3's. In summary, 13 seems to be on the halo and relatively close 
+# to the sun or galactic center.
+
+# 19 has small positive value in Dim 1, meaning it's not so further
+# away of our sun or the galactic center. It's positive and high 
+# in Dim 2 meaning it is in the halo of the galaxy in a high and 
+# positive longitude. It's positive and relatively small in Dim 3, 
+# so this dim will not change the conclusions of dim 2. This way, 19 
+# seems to be in the halo of the galaxy in a high positive longitude and
+# somewhat away from the galactic center and our sun.
+
+# 22 has small negative value in Dim 1, meaning it's somewhat closer to 
+# our sun and the galactic center. It's positive and relatively small
+# in Dim 2 meaning can be in the galaxy disk. It's positive and high in 
+# Dim 3, meaning it can be in the halo with a negative longitude. 
+# This way, dim 2 loses power in the representation of cluster 22. In 
+# summary, 22 seems to be in the halo with negative longitude values and
+# somewhat close to the galactic center and our sun.
+
+# as proof of what was concluded is write... (I'm very clever ehehe)
+g = ggplot(df[c(5,6,13,19,22),], aes(x=gal.long, y=gal.lat))+
+      geom_hline(yintercept=0)+
+      geom_point()+
+      geom_text(aes(label=c("5","6","13","19","22")),hjust=0, vjust=0)+
+      geom_point(x=0,y=0, shape=21, size=5)+
+      lims(y=c(-3,2.8), x=c(-1.1,1.25))+
+      labs(title="Distribution of globular clusters through space",
+           x="longitude",
+           y="latitude")
+g
+#ggsave("loc_clusters_specific_coord.png", g)
+
 
 ## quality of representation - cos2
 pca$ind$cos2
@@ -291,26 +288,13 @@ pca$svd$V
 # for gal.lat. From this vector we can define the 1st PC as linear 
 # combinations of the standardized original variables. So, PC1 is 
 # PC1 = 0.127*Z_gal.long-0.128*Z_gal.lat+0.695*Z_r.sol+0.695*Z_r.gc.
-# Tis PC represents very well globular 
-# clusters that are further away to the sun or the galaxy center.
-# Therefore, Dim 1 oposes globular clusters that are closer to our 
-# Sun or to the galactic center, in other words, clusters that are 
-# closer to the galactic disk, being more exposed to dust and 
-# radiation, so harder to see i.e. have greater extinction.
+# This PC represents very well globular clusters that are further away 
+# of the sun or the galaxy center.
 
 # PC2 = 0.708*Z_gal.long+0.706*Z_gal.lat+0.002*Z_r.sol-0.0005*Z_r.gc.
-# Dim 2 expresses well the coordinates of the globular clusters? [review]
-# that are in the "right upper corner" of the galaxy and expresses 
-# nothing of r.sol and r.gc (as expected). 
-# It oposes the clusters that are in the "left lower corner".
 
 # PC3 = -0.695*Z_gal.long-0.696*Z_gal.lat+0.133*Z_r.sol+0.122*Z_r.gc.
-# relatively hight negative correlation for gal.long, -0.652
-# relatively hight positive correlation for gal.lat, 0.652
-# explains the inverse of Dim 2
-# explains well the coordinates of the globular clusters [review]
-# that are "right lower corner" the galaxy 
-# oposes the ones that are "left upper corner" the galaxy
+
 
 
 ## Eigenvalues

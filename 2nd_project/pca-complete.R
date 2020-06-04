@@ -5,12 +5,31 @@ library(ggplot2)
 set.seed(123)
 
 ## Read data frame
-df = readRDS("./data/location.dat") 
+loc = readRDS("./data/location.dat") 
+dyn = readRDS("./data/dynamics.dat") 
 
+df = cbind(loc, dyn)
+
+# metal     Log of metallicity wrt solar metallicity              numeric
+# mv        Absolute magnitude                                    numeric
+# r.core    Core radius (pc)                                      numeric
+# r.tidal   Tidal radius (parsec)                                 numeric
+# conc      Core concentration parameter                          numeric
+# log.t     Logarithm of central relaxation timescale (yr)        numeric
+# log.rho   Logarithm of central density (M_sun/pc^3)             numeric
+# s0        Central velocity dispersion (km/s)                    numeric
+# v.esc     Central escape velocity (km/s)                        numeric
+# vhb       Level of the horizontal branch (mag)                  numeric
+# e.bv      B-V colour excess (mag)                               numeric
+# bv        B-V colour index (mag)                                numeric
+# ellipt    Ellipticity                                           numeric
+# v.t       Integrated V magnitude (mag)                          numeric
+# csb       Central surface brightness (mag/arcsec^2)             numeric
 # gal.long  Galactic longitude (degrees)                          numeric
 # gal.lat   Galactic latitude (degrees)                           numeric
 # r.sol     Distance from the Sun (kpc)                           numeric
 # r.gc      Distance from the Galactic Centre (kpc)   
+
 
 # View(df)
 # dim(df)
@@ -38,19 +57,19 @@ pca = PCA(df)
 pca$eig 
 
 ## easier to see the "elbow"
-#png("loc_eigen_barplot.png")
+png("comp_eigen_barplot.png")
 barplot(pca$eig[,1],
         main="Eigenvalues",
         names.arg=1:nrow(pca$eig))
-#dev.off()
+dev.off()
 
 
 # There are no contributions above 67%, no PC is an outlier.
-# By 1) keep 3 PC
-# By 2) keep 3 PC
-# By 3) keep 2
-# By "majority of vote" we keep the first 3 PC
-# with the first 3 PC we explain 99% of the total variance
+# By 1) keep 5 PC
+# By 2) keep 5 or 6 PC
+# By 3) keep 5 PC
+# By "majority of vote" we keep the first 5 PC
+# With the first 5 PC we explain ~82% of the total variance.
 
 
 
@@ -59,15 +78,22 @@ barplot(pca$eig[,1],
 # current. PC explains better and what it opposes.
 
 ## Interpretation - In regard of the variables
-#png("loc_pca_graph_var_dim12.png")
+png("comp_pca_graph_var_dim12.png")
 plot(pca, axes = c(1,2), choix = c("var"), col.var="black")
-#dev.off()
-#png("loc_pca_graph_var_dim13.png")
+dev.off()
+png("comp_pca_graph_var_dim13.png")
 plot(pca, axes = c(1,3), choix = c("var"), col.var="black")
-#dev.off()
+dev.off()
+png("comp_pca_graph_var_dim14.png")
+plot(pca, axes = c(1,4), choix = c("var"), col.var="black")
+dev.off()
+png("comp_pca_graph_var_dim15.png")
+plot(pca, axes = c(1,5), choix = c("var"), col.var="black")
+dev.off()
 
 # the signs of the arrows correspond to the sign of the eigenvectors
 
+# [review]
 # Dim 1 has about the same high positive value for r.sol and r.gc. 
 # A smaller but still positive value for gal.long and something close
 # to gal.long simetric for gal.lat. Dim 1 represents completely globular 
@@ -106,68 +132,97 @@ plot(pca, axes = c(1,3), choix = c("var"), col.var="black")
 
 ## correlations variables - dimensions/PC
 pca$var$cor
+
+# [review]
 # Dim 1
-# -high positive corr r.sol and r.gc, 0.984 and 0.985
-# -explains well the ones further away from the sun and galatic center
-# -oposes the ones that are closer to the galatic disk
+# -high positive corr r.core and csb
+#  relatively high corr mv, log.t, ellipt
+#  high negative corr conc, log.rho, s0 and v.esc
+# -explains well ...
+#  explains relatively well ...
+# -oposes the ones ...
 
 # Dim 2
-# -high positive corr gal.long and g.lat, 0.736 and 0.735
-# -explains well the coordinates of the globular clusters
-# that are in the "right upper corner" of the galaxy
-# -oposes the ones that are "left lower corner" the galaxy
+# -high positive corr e.bv and bv
+#  relatively high negative r.tidal
+# -explains well ...
+# -oposes the ...
 
 # Dim 3
-# -relatively hight negative correlation for gal.long, -0.652
-# relatively hight positive correlation for gal.lat, 0.652
-# -explains the inverse of Dim 2
-# explains well the coordinates of the globular clusters [review]
-# that are "right lower corner" the galaxy 
-# -oposes the ones that are "left upper corner" the galaxy
+# -relatively hight positive corr vhb
+#  close to 0.5 corr s0
+#  close to -0.5 corr mv
+#  overall small correlations
+# -explains ...
+# -oposes ...
 
 # Dim 4 
-# was not chosen and displays very small correlations
+# -relatively hight positive corr vhb
+#  close to 0.5 corr conc, vhb
+#  overall small correlations
+# -explains ...
+# -oposes ...
+
+# Dim 5
+# -hight positive corr v.t
+#  all small correlations but v.t
+# -explains ...
+# -oposes ...
+
 
 ## Contributions
 pca$var$contrib
 # the variables which have the highest correlation with each PC
 # will be those that contribute more
-# Dim 1 has ~48% for r.sol and r.gc
-# Dim 2 has ~50% for gal.long and gal.lat
-# Dim 3 has ~48% for gal.long and gal.lat and ~2% for r.sol and r.gc
+# Dim 1 has ~% for 
+# Dim 2 has ~% for 
+# Dim 3 has ~% for 
+# Dim 4 has ~% for 
+# Dim 5 has ~% for 
 
 
 ## Interpretation - In regard of the individuals
-g = ggplot(df, aes(x=gal.long, y=gal.lat))+
-     geom_point()+
-      geom_point(x=0,y=0)+
-       geom_hline(yintercept=0)+
-        labs(title="Distribution of globular clusters through space",
-           x="longitude",
-           y="latitude")
-g
-#ggsave("loc_clusters_coord.png", g)
+# g = ggplot(df, aes(x=gal.lat, y=gal.long))+
+#      geom_point()+
+#       geom_point(x=0,y=0)+
+#        geom_hline(yintercept=0)+
+#         labs(title="Distribution of globular clusters through space",
+#            x="latitude",
+#            y="longitude")
+# g
+#ggsave("comp_clusters_coord.png", g)
 
 
 ## coordinates of the individuals
 ## which ones are more extreme in each PC
 pca$ind$coord
-#png("loc_pca_graph_ind_dim12.png")
+png("comp_pca_graph_ind_dim12.png")
 plot(pca, axes = c(1,2), choix = c("ind","var","varcor"), col.var="black")
-#dev.off()
-#png("loc_pca_graph_ind_dim13.png")
+dev.off()
+png("comp_pca_graph_ind_dim13.png")
 plot(pca, axes = c(1,3), choix = c("ind","var","varcor"), col.var="black")
-#dev.off()
+dev.off()
+png("comp_pca_graph_ind_dim15.png")
+plot(pca, axes = c(1,4), choix = c("ind","var","varcor"), col.var="black")
+dev.off()
+png("comp_pca_graph_ind_dim15.png")
+plot(pca, axes = c(1,5), choix = c("ind","var","varcor"), col.var="black")
+dev.off()
 
-# Dim 1 vs Dim 2 - Clusters 5, 6, 13, 19, 20 are more extreme
-# Dim 1 vs Dim 3 - Clusters 5, 6, 13, 22, 8 are more extreme
+# [review]
+# Dim 1 vs Dim 2 - Clusters 110, 6, 5, 13, 20 are more extreme
+# Dim 1 vs Dim 3 - Clusters 13, 5, 6, 20, 63 are more extreme
+# Dim 1 vs Dim 4 - Clusters 110, 6, 5, 13, 20 are more extreme
+# Dim 1 vs Dim 5 - Clusters 110, 6, 5, 13, 20 are more extreme
 
-# Analysing 5,6,13,19 and 22
+# Analysing  ?
 # 5 and 6 are positive and high in Dim 1, meaning they are further 
 # away from our sun and the galactic center. They are negative and 
 # small in Dim 2, meaning they might be closer to the "center" but in 
 # the "left" side of the galaxy. Both of them are next to zero in 
-# Dim 3, which is the symmetric of Dim 2, doesnt have any influence over them . So, 5 and 6 seem to
+# Dim 3, which is the symmetric of Dim 2, this way it reinforces the 
+# conclusions of being in the center of the plot? or
+# doesnt have any influence over them? . So, 5 and 6 seem to
 # be on the "center left" not so close to the galactic center or sun.
 
 # 13 is positive and relatively high in Dim 1, meaning it's not so 
@@ -199,63 +254,73 @@ plot(pca, axes = c(1,3), choix = c("ind","var","varcor"), col.var="black")
 # galaxy and somewhat close to the galactic center and our sun.
 
 # as proof of what was concluded is write... (I'm very clever ehehe)
-g = ggplot(df[c(5,6,13,19,22),], aes(x=gal.long, y=gal.lat))+
-      geom_hline(yintercept=0)+
-      geom_point()+
-      geom_text(aes(label=c("5","6","13","19","22")),hjust=0, vjust=0)+
-      geom_point(x=0,y=0)+
-      #lims(x=c(-3,2.8), y=c(-1.1,1.25))+
-      labs(title="Distribution of globular clusters through space",
-           x="longitude",
-           y="latitude")
-g
-#ggsave("loc_clusters_specific_coord.png", g)
+# g = ggplot(df[c(5,6,13,19,22),], aes(x=gal.lat, y=gal.long))+
+#       geom_hline(yintercept=0)+
+#       geom_point()+
+#       geom_text(aes(label=c("5","6","13","19","22")),hjust=0, vjust=0)+
+#       geom_point(x=0,y=0)+
+#       lims(x=c(-3,2.8), y=c(-1.1,1.25))+
+#       labs(title="Distribution of globular clusters through space",
+#            x="latitude",
+#            y="longitude")
+# g
+#ggsave("comp_clusters_specific_coord.png", g)
 
 
 ## Contributions
 ## the more extreme will have the higher contribution
 pca$ind$contrib
-#dev.off()
-#png("loc_pca_graph_ind_dim12_contr5.png")
+dev.off()
+png("comp_pca_graph_ind_dim12_contr5.png")
 plot(pca, axes = c(1,2), select="contrib 5") # plot the 5 individuals with the highest contribution
-#dev.off()
-#png("loc_pca_graph_ind_dim13_contr5.png")
+dev.off()
+png("comp_pca_graph_ind_dim13_contr5.png")
 plot(pca, axes = c(1,3), select="contrib 5") # plot the 5 individuals with the highest contribution
-#dev.off()
+dev.off()
+png("comp_pca_graph_ind_dim14_contr5.png")
+plot(pca, axes = c(1,4), select="contrib 5") # plot the 5 individuals with the highest contribution
+dev.off()
+png("comp_pca_graph_ind_dim15_contr5.png")
+plot(pca, axes = c(1,5), select="contrib 5") # plot the 5 individuals with the highest contribution
+dev.off()
 
-pca$ind$contrib[c(5,6,13,19,22),]
-#          Dim.1     Dim.2       Dim.3     Dim.4
-# 5  39.04292366 0.4590550 0.005917569 0.3220284
-# 6  20.15196533 0.4803917 0.001392067 0.5775253
-# 13 19.21680635 1.6023957 3.732356358 0.1542186
-# 19  0.05815655 6.2899501 1.676790230 0.4472714
-# 22  0.11902428 1.5250545 6.294405448 1.3400676
+pca$ind$contrib[c(5,6,13,20,63,110),]
+#        Dim.1        Dim.2     Dim.3     Dim.4     Dim.5
+# 5   9.041953 0.0327590724 1.0808625 3.2314396 0.6003686
+# 6   6.227958 0.0003235155 0.7080374 2.9115575 1.0275141
+# 13  8.144851 0.6774888968 3.1838859 2.9858328 0.1085088
+# 20  5.399127 1.5786450153 0.1147228 0.1917435 0.4502503
+# 63  3.368248 0.0790843542 7.0651195 0.2343696 2.1359336
+# 110 4.236755 0.8433024479 0.6206252 0.1259535 2.5524507
 
 ## quality of representation - cos2
 pca$ind$cos2
-#png("loc_pca_graph_ind_dim12_cos0.8.png")
-plot(pca,select="cos2 0.8")  # plot the individuals with cos2 greater than 0.8
-plot(pca,axes = c(1,3),select="cos2 0.8")  # plot the individuals with cos2 greater than 0.8
-#dev.off()
-#png("loc_pca_graph_ind_dim12_cos5.png")
-plot(pca,select="cos2 5")    # plot the 5 individuals with the highest cos2 
-#dev.off()
+png("comp_pca_graph_ind_dim12_cos0.8.png")
+plot(pca, axes = c(1,2), select="cos2 0.8")  # plot the individuals with cos2 greater than 0.8
+dev.off()
 
-pca$ind$cos2[c(5,6,29,99,104),]
-#          Dim.1       Dim.2        Dim.3        Dim.4
-# 5   0.99349858 0.006304476 6.622176e-05 0.0001307202
-# 6   0.98682259 0.012696281 2.997881e-05 0.0004511453
-# 29  0.02042638 0.969580345 4.739072e-03 0.0052542078
-# 99  0.19758399 0.796017482 2.020026e-03 0.0043785066
-# 104 0.03543445 0.952402252 7.329558e-03 0.0048337413
+png("comp_pca_graph_ind_dim12_cos5.png")
+plot(pca, axes = c(1,2), select="cos2 5")    # plot the 5 individuals with the highest cos2 
+dev.off()
 
-pca$ind$cos2[c(5,6,13,19,22),]
-#         Dim.1       Dim.2        Dim.3        Dim.4
-# 5  0.99349858 0.006304476 6.622176e-05 0.0001307202
-# 6  0.98682259 0.012696281 2.997881e-05 0.0004511453
-# 13 0.88452778 0.039806995 7.555199e-02 0.0001132376
-# 19 0.01385522 0.808763369 1.756816e-01 0.0016998468
-# 22 0.03189613 0.220570355 7.418049e-01 0.0057286574
+pca$ind$cos2[c(24,29,35,107,111),]
+#         Dim.1      Dim.2       Dim.3        Dim.4        Dim.5
+# 24  0.6435605 0.28239257 0.006674570 0.0001956212 2.456637e-02
+# 29  0.7914627 0.10209750 0.004367784 0.0606051430 1.787566e-05
+# 35  0.6577576 0.25435749 0.003043227 0.0019793248 5.042810e-02
+# 107 0.3449233 0.60967884 0.012559207 0.0011021431 1.162959e-02
+# 111 0.8902896 0.01308037 0.043511433 0.0054274561 5.546657e-04
+
+pca$ind$cos2[c(5,6,13,20,63,110),]
+#         Dim.1       Dim.2        Dim.3        Dim.4      Dim.5
+# 5   0.8462196 0.0016475141 0.028374647 0.071549596 0.008719236
+# 6   0.8313423 0.0000232063 0.026511212 0.091949611 0.021284414
+# 13  0.7717523 0.0344963939 0.084623594 0.066934589 0.001595510
+# 20  0.7582621 0.1191398347 0.004519439 0.006370987 0.009812722
+# 63  0.5391404 0.0068024458 0.317217031 0.008875428 0.053054869
+# 110 0.7304440 0.0781292554 0.030013883 0.005137529 0.068288986
+
+# [review]
 # All globular clusters are well represented with only one dimension.
 # with 3 dimensions all get to a cos2 of 0.99.
 # 5, 6 and 13 are represented really well, 0.99, 0.98 and 0.88, in
@@ -285,6 +350,7 @@ pca$ind$cos2[c(5,6,13,19,22),]
 ## Eigenvectors
 pca$svd$V 
 
+#[review]
 # Vector 1 has basically the same high positive value of 0.695 and 
 # 0.696 for r.sol and r.gc. It has a small positive value of 0.127 
 # for gal.long and a small negative value, almost symmetric, of -0.129
@@ -304,7 +370,7 @@ pca$svd$V
 # nothing of r.sol and r.gc (as expected). 
 # It oposes the clusters that are in the "left lower corner".
 
-# PC3 = -0.695*Z_gal.long-0.696*Z_gal.lat+0.133*Z_r.sol+0.122*Z_r.gc.
+# be PC3 = -0.695*Z_gal.long-0.696*Z_gal.lat+0.133*Z_r.sol+0.122*Z_r.gc.
 # relatively hight negative correlation for gal.long, -0.652
 # relatively hight positive correlation for gal.lat, 0.652
 # explains the inverse of Dim 2
@@ -315,8 +381,12 @@ pca$svd$V
 
 ## Eigenvalues
 pca$eig
-# PC1 has a 50% of total variance
-# PC2 has a 27% of total variance
-# PC3 has a 22% of total variance
-# The 3 together explain 99% of the total variance
+
+# [review]
+# PC1 has a 41% of total variance
+# PC2 has a 22% of total variance
+# PC3 has a 11% of total variance
+# PC4 has a 10% of total variance
+# PC5 has a 6% of total variance
+# The 5 together explain 90% of the total variance
 

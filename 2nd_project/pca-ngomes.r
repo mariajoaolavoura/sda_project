@@ -10,6 +10,8 @@
 # packages ----------------------------------------------------------------
 require(FactoMineR)
 require(GGally)
+require(latex2exp)
+require(lattice)
 require(tidyverse)
 
 
@@ -18,6 +20,32 @@ require(tidyverse)
 dat.loc= readRDS("./data/location.dat")
 dat.dyn= readRDS("./data/dynamics.dat")
 dat.num= readRDS("./data/gc.dat")
+
+
+
+# variables ---------------------------------------------------------------
+var.units= c(
+  TeX("$\\textbf{gal.long}$ ($\\degree$)"),
+  TeX("$\\textbf{gal.lat}$ ($\\degree$)"),
+  TeX("$\\textbf{r.sol}$ (kpc)"),
+  TeX("$\\textbf{r.gc}$ (kpc)"),
+  TeX("$\\textbf{metal}$"),
+  TeX("$\\textbf{mv}$ (mag)"),
+  TeX("$\\textbf{r.core}$ (pc)"),
+  TeX("$\\textbf{r.tidal} (pc)"),
+  TeX("$\\textbf{conc}$"),
+  TeX("$\\textbf{log.t}$ (yr)"),
+  TeX("$\\textbf{log.rho}$ ($M_{sun}/pc^3$)"),
+  TeX("$\\textbf{s0}$ (km/s)"),
+  TeX("$\\textbf{v.esc}$ (km/s)"),
+  TeX("$\\textbf{vhb}$ (mag)"),
+  TeX("$\\textbf{e.bv} (mag)"),
+  TeX("$\\textbf{bv}$ (mag)"),
+  TeX("$\\textbf{ellipt}$"),
+  TeX("$\\textbf{v.t} (mag)"),
+  TeX("$\\textbf{csb}$ ($mag/arcsec^2$)")
+)
+
 
 
 # principal component analysis --------------------------------------------
@@ -70,5 +98,25 @@ barplot(
   pca.dyn$eig[, 1],
   main= "Eigenvalues (dynamic variables)",
   names.arg= 1:nrow(pca.dyn$eig)
+)
+
+plot(
+  pca.dyn,
+  axes= c(1, 2),
+  choix= c("ind", "var", "varcor"),
+  col.var= "blue"
+)
+
+
+
+# multivariate visualisations ---------------------------------------------
+cloud(
+  dat.dyn$conc ~ dat.dyn$log.t * dat.dyn$log.rho,
+  screen= list(z= 80, x= 45, y= 45),
+  xlab= var.units[10], ylab= var.units[11], zlab= var.units[9],
+  main= "Cloud scatter plot",
+  col= 4,
+  pch= 1,
+  cex= dat.dyn$s0 + 1
 )
 

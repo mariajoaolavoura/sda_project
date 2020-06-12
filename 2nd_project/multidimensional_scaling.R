@@ -13,7 +13,9 @@ library(MASS)
 set.seed(123)
 
 ## Read data frame
-df = readRDS("./data/gc.dat") 
+#df = readRDS("./data/gc.dat") 
+#df = readRDS("./data/location.dat") 
+df = readRDS("./data/dynamics.dat") 
 
 # correlation matrix
 df_cor = cor(df)
@@ -33,25 +35,25 @@ colnames(mds.tb) = c("Dim.1", "Dim.2")
 ggscatter(mds.tb, x = "Dim.1", y = "Dim.2", 
           size = 1,
           label = colnames(df_cor),
-          repel = TRUE)
-
+          repel = TRUE,
+          title = "Classical MDS - dynamics data set")
 
 # K-means clustering
-clust = kmeans(mds.tb, 2)$cluster %>%
-                            as.factor()
-mds.clust = mds.tb %>%
-               mutate(groups = clust)
-# Plot and color by groups
-g = ggscatter(mds.clust, x = "Dim.1", y = "Dim.2", 
-          label = rownames(df_cor),
-          color = "groups",
-          palette = "jco",
-          size = 1, 
-          ellipse = TRUE,
-          ellipse.type = "convex",
-          repel = TRUE,
-          title = "Classical MDS")
-g
+# clust = kmeans(mds.tb, 2)$cluster %>%
+#                             as.factor()
+# mds.clust = mds.tb %>%
+#                mutate(groups = clust)
+# # Plot and color by groups
+# g = ggscatter(mds.clust, x = "Dim.1", y = "Dim.2", 
+#           label = rownames(df_cor),
+#           color = "groups",
+#           palette = "jco",
+#           size = 1, 
+#           ellipse = TRUE,
+#           ellipse.type = "convex",
+#           repel = TRUE,
+#           title = "Classical MDS")
+#g
 #g %>% ggexport(filename="msd_clust.png")
 
 

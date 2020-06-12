@@ -22,14 +22,14 @@ pca = PCA(df)
 
 ## How many components should be kept? (look at the eigenvalues)
 # 1) Pearson's criterion:
-#   Keep a number q of components such that they explain at least 
+#   Keep a number q of components such that they explain at least
 #   80% of the total dispersion.
 # 2) Cattell's criterion:
 #   elbow's rule for the eigenvalues
 # 3) Kaiser criterion:
-#   Normed PCA : only keep the eigenvalues above 1 
+#   Normed PCA : only keep the eigenvalues above 1
 
-# If a PC has >67% contribution, is an outlier. 
+# If a PC has >67% contribution, is an outlier.
 # Run again the PC without those cases.
 # The outlier in the original data set might be defining by 
 # themselves PC and therefore provide a solution that is not general
@@ -159,7 +159,7 @@ plot(pca, axes = c(1,3), choix = c("ind","var","varcor"), col.var="black")
 ## Contributions
 ## the more extreme will have the higher contribution
 pca$ind$contrib
-#dev.off()
+
 #png("loc_pca_graph_ind_dim12_contr5.png")
 plot(pca, axes = c(1,2), select="contrib 5") # plot the 5 individuals with the highest contribution
 #dev.off()
@@ -231,12 +231,19 @@ g
 ## quality of representation - cos2
 pca$ind$cos2
 #png("loc_pca_graph_ind_dim12_cos0.8.png")
-plot(pca,select="cos2 0.8")  # plot the individuals with cos2 greater than 0.8
-plot(pca,axes = c(1,3),select="cos2 0.8")  # plot the individuals with cos2 greater than 0.8
+plot(pca, axes=c(1,2), select="cos2 0.8")  # plot the individuals with cos2 greater than 0.8
+#dev.off()
+#png("loc_pca_graph_ind_dim13_cos0.8.png")
+plot(pca, axes=c(1,3), select="cos2 0.8")  # plot the individuals with cos2 greater than 0.8
 #dev.off()
 #png("loc_pca_graph_ind_dim12_cos5.png")
-plot(pca,select="cos2 5")    # plot the 5 individuals with the highest cos2 
+plot(pca, axes=c(1,2), select="cos2 5")    # plot the 5 individuals with the highest cos2 
 #dev.off()
+#png("loc_pca_graph_ind_dim13_cos5.png")
+plot(pca, axes=c(1,3), select="cos2 5")    # plot the 5 individuals with the highest cos2 
+#dev.off()
+
+length(which(pca$ind$cos2>0.8))/111
 
 pca$ind$cos2[c(5,6,29,99,104),]
 #          Dim.1       Dim.2        Dim.3        Dim.4
@@ -293,7 +300,7 @@ pca$svd$V
 
 # PC2 = 0.708*Z_gal.long+0.706*Z_gal.lat+0.002*Z_r.sol-0.0005*Z_r.gc.
 
-# PC3 = -0.695*Z_gal.long-0.696*Z_gal.lat+0.133*Z_r.sol+0.122*Z_r.gc.
+# PC3 = -0.695*Z_gal.long+0.696*Z_gal.lat+0.133*Z_r.sol+0.122*Z_r.gc.
 
 
 

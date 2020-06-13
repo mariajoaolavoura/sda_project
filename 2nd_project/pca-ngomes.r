@@ -114,7 +114,6 @@ cloud(
   dat.dyn$conc ~ dat.dyn$log.t * dat.dyn$log.rho,
   screen= list(z= 80, x= 45, y= 45),
   xlab= var.units[10], ylab= var.units[11], zlab= var.units[9],
-  main= "Cloud scatter plot",
   col= 4,
   pch= 1,
   cex= dat.dyn$s0 + 1

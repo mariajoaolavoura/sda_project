@@ -13,6 +13,8 @@ require(FactoMineR)
 require(GGally)
 require(latex2exp)
 require(MASS)
+require(plot3D)
+require(pracma)
 require(tidyverse)
 
 # theme_set(theme_cowplot())
@@ -393,11 +395,86 @@ dat.dyn= dat.num[, -c(1:4)]
 saveRDS(dat.loc, "./data/location.dat") # readRDS to load; eg:
 saveRDS(dat.dyn, "./data/dynamics.dat") # a= readRDS("./data/dynamics.dat")
 saveRDS(dat.num, "./data/gc.dat")
+saveRDS(dat.out[, -1], "./data/no-out.dat")
 write.csv(dat.loc, "./data/location.csv")
 write.csv(dat.dyn, "./data/dynamics.csv")
-dat.loc= readRDS("./data/location.dat")
 dat.dyn= readRDS("./data/dynamics.dat")
+dat.loc= readRDS("./data/location.dat")
 dat.num= readRDS("./data/gc.dat")
+dat.out= readRDS("./data/no-out.dat")
+
+
+
+# 3d plot -----------------------------------------------------------------
+lon= dat.out$gal.long[1:111] * 2*pi/360
+lat= dat.out$gal.lat[1:111] * 2*pi/360
+rad= dat.out$r.gc[1:111]
+sphcoord= cbind(lon, lat, rad)
+crtcoord= sph2cart(sphcoord)
+cylcoord= cart2pol(crtcoord)
+lonlim= max(abs(lon), na.rm= T)
+latlim= max(abs(lat), na.rm= T)
+radlim= max(abs(rad), na.rm= T)
+xx= crtcoord[, 1]
+yy= crtcoord[, 2]
+zz= crtcoord[, 3]
+xxlim= floor(max(abs(xx), na.rm= T) + 0.5) + 10
+yylim= floor(max(abs(yy), na.rm= T) + 0.5) + 10
+zzlim= floor(max(abs(zz), na.rm= T) + 0.5) + 10
+backgroundcol= "rgb(50, 50, 50)"
+gridcol= "rgb(100, 100, 100)"
+zerolinecol= "rgb(255, 255, 255)"
+
+axx= list(
+  range= c(-xxlim, xxlim),
+  backgroundcolor= backgroundcol,
+  gridcolor= gricol,
+  showbackground= T,
+  zerolinecolor= zerolinecol
+)
+ayy= list(
+  range= c(-yylim, yylim),
+  backgroundcolor= backgroundcol,
+  gridcolor= gridcol,
+  showbackground= T,
+  zerolinecolor= zerolinecol
+)
+azz= list(
+  range= c(-zzlim, zzlim),
+  backgroundcolor= backgroundcol,
+  gridcolor= gridcol,
+  showbackground= T,
+  zerolinecolor= zerolinecol
+)
+
+scatter3D(
+  xx, yy, zz, colvar= dat.out$metal,
+  xlim= c(-xxlim, xxlim),
+  ylim= c(-yylim, yylim),
+  phi= 10,
+  theta= 30,
+  bty= "g",
+  pch= 21
+)
+
+plot_ly(
+  x= xx, y= yy, z= zz,
+  type= "scatter3d",
+  mode= "markers",
+  size= 0.5,
+  symbol= 20,
+  color= dat.out$metal,
+  colors= "Spectral"
+) %>%
+  layout(
+    scene= list(
+      xaxis= axx,
+      yaxis= ayy,
+      zaxis= azz,
+      aspectmode= "cube"
+    )
+  )
+
 
 
 # bivariate relationships -------------------------------------------------

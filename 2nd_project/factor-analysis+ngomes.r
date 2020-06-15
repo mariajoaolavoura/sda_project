@@ -125,7 +125,7 @@ dat.pcs$communality
 # rotated components
 dat.pcs$loadings
 # RC1: opposes central velocity dispersion (s0) and central escape velocity (v.esc) to absolute magnitude (mv)
-# RC4: opposes the logarithm of central relaxation time scale (log.t) and the core radius (r.core) to the core concentration parameter (core)
+# RC4: opposes the logarithm of central relaxation time scale (log.t) and the core radius (r.core) to the core concentration parameter (conc)
 # RC3: high values in distance from the Sun (r.sun), distance from the Galactic Centre (r.gc), and level of the horizontal branch (vhb).
 # RC2: high values of B-V colour excess (e.bv) and B-V colour index (B-V)
 # RC5: high value of logarithm of metallicity with respect to solar metallicity (metal)
@@ -157,7 +157,7 @@ dat.minres= fa(
 )
 
 # checking normality graphically
-scatterplotMatrix(bank)
+scatterplotMatrix(dat)
 
 # maximum likelihood
 dat.ml= fa(

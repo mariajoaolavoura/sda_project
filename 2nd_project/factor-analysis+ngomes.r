@@ -12,7 +12,20 @@ require(GGally)
 require(latex2exp)
 require(psych)
 require(tidyverse)
+library(FactoMineR)
+library(ggpubr)
 
+
+# functions ---------------------------------------------------------------
+plot_loadings = function(l, label){
+  names(l) = c("RC1", "RC2")
+  ggscatter(l, x = "RC1", y = "RC2", 
+            size = 1,
+            label = label,
+            repel = TRUE,
+            title = "Factor Analysis - graph of variables")
+  
+}
 
 
 # data sets ---------------------------------------------------------------
@@ -115,8 +128,11 @@ KMO(dat.corr)
 
 
 # factor analysis model extraction ----------------------------------------
+pca = PCA(dat)
+pca$eig 
+
 # extract principal components (model with five common factors)
-dat.pcs= principal(dat.corr, 5, rotate= "varimax")
+dat.pcs= principal(dat.corr, 4, rotate= "varimax")
 # communalities with a five common factors model
 dat.pcs$communality
 # The values obtained are relatively high.
@@ -124,15 +140,17 @@ dat.pcs$communality
 
 # rotated components
 dat.pcs$loadings
-# RC1: opposes central velocity dispersion (s0) and central escape velocity (v.esc) to absolute magnitude (mv)
+print(dat.pcs$loadings,cutoff = 0.6)
+# RC1: opposes central velocity disp4ersion (s0) and central escape velocity (v.esc) to absolute magnitude (mv)
 # RC4: opposes the logarithm of central relaxation time scale (log.t) and the core radius (r.core) to the core concentration parameter (conc)
 # RC3: high values in distance from the Sun (r.sun), distance from the Galactic Centre (r.gc), and level of the horizontal branch (vhb).
 # RC2: high values of B-V colour excess (e.bv) and B-V colour index (B-V)
 # RC5: high value of logarithm of metallicity with respect to solar metallicity (metal)
+plot_loadings(data.frame(dat.pcs$loadings[,1:2]), names(dat))
 
-
+# residuals
 dat.pcs$residual
-
+dat.pcs
 
 
 # alternatives for model extraction ---------------------------------------

@@ -58,13 +58,10 @@ barplot(pca$eig[,1],
 
 # There are no contributions above 67%, no PC is an outlier.
 # By 1) keep 4 PC
-# By 2) keep 5 or 6 PC
+# By 2) keep 4 or 5 PC
 # By 3) keep 4
-# By "majority of vote" we keep the first 4 PC, but PC5 gets to a
-# cumulative percentage of variance of 89.8%, accepted by 1). It's 
-# accepted by 2). It has a 0.946 eigenvalue, almost 1, which is close
-# to be accepted by 3). So, we will keep the first 5 PC.
-# With the first 5 PC we explain ~90% of the total variance.
+# By "majority of vote" we keep the first 4 PC
+# we explain ~83% of the total variance.
 
 
 
@@ -82,47 +79,8 @@ plot(pca, axes = c(1,3), choix = c("var"), col.var="black")
 #png("dyn_pca_graph_var_dim14.png")
 plot(pca, axes = c(1,4), choix = c("var"), col.var="black")
 #dev.off()
-#png("dyn_pca_graph_var_dim15.png")
-plot(pca, axes = c(1,5), choix = c("var"), col.var="black")
-#dev.off()
 
 # the signs of the arrows correspond to the sign of the eigenvectors
-
-# [review]
-# Dim 1 has about the same high positive value for r.sol and r.gc. 
-# A smaller but still positive value for gal.long and something close
-# to gal.long simetric for gal.lat. Dim 1 represents completely globular 
-# clusters that are further away to the sun or the galaxy center and
-# expresses, not so well, the clusters at the "bottom center left" of
-# the galaxy. Therefore, Dim 1 oposes globular clusters that are 
-# closer to our Sun or to the galactic center, in other words, clusters
-# that are closer to the galactic disk, being more exposed to dust and 
-# radiation, which are harder to see i.e. have greater extinction.
-
-# Dim 2 has a high positive value for gal.long, the symmetric for
-# gal.lat and zero for r.sol and r.gc. It expresses well the coordinates
-# of the globular clusters that are in the "right upper corner" of the 
-# galaxy. It expresses nothing of r.sol and r.gc (as expected, since 
-# Dim1 already explained almost everything). It oposes the clusters 
-# that are in the "left lower corner". This dimension represents well
-# clusters that are far away from the galactic disk, meaing they are 
-# less exposed to dust and are easier to see, i.e less extinction. Its 
-# oposition, "left lower corner", represents the same situation,
-# globular clusters with lower extinction.
-
-# Dim 3 has a relatively high negative value for gal.long, a 
-# relatively high positive value for gal.lat and a small positive 
-# value for r.sol and r.gc. This dimension represents the symmetric of
-# Dim 2, coordinates wise. It expresses relatively well the 
-# coordinates of the globular clusters that are in the "right lower
-# corner" of the galaxy and expresses, not so well, the clusters that
-# are not so far away from the galactic center and our sun. It oposes 
-# the clusters that are in the "left upper corner". It expresses 
-# relatively well clusters that are far away from the galactic disk, 
-# meaing they are less exposed to dust and are easier to see, i.e less
-# extinction. Its oposition, "left upper corner", represents the same
-# situation, globular clusters with lower extinction. 
-
 
 
 ## correlations variables - dimensions/PC

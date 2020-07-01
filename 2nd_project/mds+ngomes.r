@@ -117,3 +117,27 @@ ggscatter(
   repel= T,
   ggtheme= theme_bw()
 )
+
+
+# extreme in Dim 1
+ggplot(dat.num[c(5,6,13,63,67,68),], aes(x=gal.long, y=gal.lat))+
+  geom_hline(yintercept=0)+
+  geom_point()+
+  geom_text(aes(label=c("5","6","13","63","67","68")),hjust=0, vjust=0)+
+  geom_point(x=0,y=0, shape=21, size=5)+
+  lims(y=c(-3,2.8), x=c(-1.1,1.25))+
+  labs(title="Distribution of globular clusters through space",
+       x="longitude",
+       y="latitude")
+
+
+# extreme in Dim 2
+ggplot(dat.num[c(7, 19, 21, 62, 95),], aes(x=gal.long, y=gal.lat))+
+  geom_hline(yintercept=0)+
+  geom_point()+
+  geom_text(aes(label=c("7","19","21","62","95")),hjust=0, vjust=0)+
+  geom_point(x=0,y=0, shape=21, size=5)+
+  lims(y=c(-3,2.8), x=c(-1.1,1.25))+
+  labs(title="Distribution of globular clusters through space",
+       x="longitude",
+       y="latitude")

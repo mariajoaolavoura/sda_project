@@ -53,6 +53,8 @@ pca.tot= PCA(dat.num)
 pca.dyn= PCA(dat.dyn)
 pca.loc= PCA(dat.loc)
 
+pca.tot$var
+
 
 
 # eigenvectors ------------------------------------------------------------
@@ -89,7 +91,7 @@ pca.dyn$ind
 
 
 # eigenvalues -------------------------------------------------------------
-## dynamic varialbes
+## dynamic variables
 pca.dyn$eig
 sum(pca.dyn$eig[1:3, 2])
 ### The first three components together account for almost 74% of the sample variance in the standardised variables.

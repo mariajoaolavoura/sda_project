@@ -263,8 +263,15 @@ pca$ind$contrib[c(5,6,13,20,63,110),]
 ## quality of representation - cos2
 pca$ind$cos2
 #png("dyn_pca_graph_ind_dim12_cos0.8.png")
-plot(pca,select="cos2 0.8")  # plot the individuals with cos2 greater than 0.8
+plot(pca, axes = c(1,2), select="cos2 0.8")  # plot the individuals with cos2 greater than 0.8
 #dev.off()
+#png("dyn_pca_graph_ind_dim13_cos0.8.png")
+plot(pca, axes = c(1,3), select="cos2 0.8")  # plot the individuals with cos2 greater than 0.8
+#dev.off()
+#png("dyn_pca_graph_ind_dim14_cos0.8.png")
+plot(pca, axes = c(1,4), select="cos2 0.8")  # plot the individuals with cos2 greater than 0.8
+#dev.off()
+
 #png("dyn_pca_graph_ind_dim12_cos5.png")
 plot(pca,select="cos2 5")    # plot the 5 individuals with the highest cos2 
 #dev.off()
@@ -286,16 +293,7 @@ pca$ind$cos2[c(5,6,13,20,63,110),]
 # 63  0.5391404 0.0068024458 0.317217031 0.008875428 0.053054869
 # 110 0.7304440 0.0781292554 0.030013883 0.005137529 0.068288986
 
-# All globular clusters are well represented with only one dimension.
-# with 3 dimensions all get to a cos2 of 0.99.
-# 5, 6 and 13 are represented really well, 0.99, 0.98 and 0.88, in
-# Dim 1. With the 3 PC they have a cos2 of 0.9998693, 0.9995489 and 
-# 0.9998868.
-# 19 is well represented, 0.81, in Dim 2. With 3 PC it has a cos2 of
-# 0.9983002
-# 22 is well represented, 0.74, in Dim 3. With the 3 PC it has a cos2
-# of 0.9942713
-
+length(which(pca$ind$cos2>0.8))/111
 
 ## Interpretation of the principal components
 # look into the eigenvectors (Vij)
@@ -314,34 +312,6 @@ pca$ind$cos2[c(5,6,13,20,63,110),]
 
 ## Eigenvectors
 pca$svd$V 
-
-#[review]
-# Vector 1 has basically the same high positive value of 0.695 and 
-# 0.696 for r.sol and r.gc. It has a small positive value of 0.127 
-# for gal.long and a small negative value, almost symmetric, of -0.129
-# for gal.lat. From this vector we can define the 1st PC as linear 
-# combinations of the standardized original variables. So, PC1 is 
-# PC1 = 0.127*Z_gal.long-0.128*Z_gal.lat+0.695*Z_r.sol+0.695*Z_r.gc.
-# Tis PC represents very well globular 
-# clusters that are further away to the sun or the galaxy center.
-# Therefore, Dim 1 oposes globular clusters that are closer to our 
-# Sun or to the galactic center, in other words, clusters that are 
-# closer to the galactic disk, being more exposed to dust and 
-# radiation, so harder to see i.e. have greater extinction.
-
-# PC2 = 0.708*Z_gal.long+0.706*Z_gal.lat+0.002*Z_r.sol-0.0005*Z_r.gc.
-# Dim 2 expresses well the coordinates of the globular clusters? [review]
-# that are in the "right upper corner" of the galaxy and expresses 
-# nothing of r.sol and r.gc (as expected). 
-# It oposes the clusters that are in the "left lower corner".
-
-# be PC3 = -0.695*Z_gal.long-0.696*Z_gal.lat+0.133*Z_r.sol+0.122*Z_r.gc.
-# relatively hight negative correlation for gal.long, -0.652
-# relatively hight positive correlation for gal.lat, 0.652
-# explains the inverse of Dim 2
-# explains well the coordinates of the globular clusters [review]
-# that are "right lower corner" the galaxy 
-# oposes the ones that are "left upper corner" the galaxy
 
 
 ## Eigenvalues

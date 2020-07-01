@@ -229,7 +229,7 @@ g
 
 
 ## quality of representation - cos2
-pca$ind$cos2
+pca$ind$cos2[c(5,6,13,19,22),]
 #png("loc_pca_graph_ind_dim12_cos0.8.png")
 plot(pca, axes=c(1,2), select="cos2 0.8")  # plot the individuals with cos2 greater than 0.8
 #dev.off()
